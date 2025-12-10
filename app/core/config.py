@@ -1,18 +1,18 @@
 import os
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 # Function to search for .env
 def get_env_file():
-    env = os.getenv('ENVIRONMENT', 'development')
-    if env == 'production':
-        return '.env.prod'
-    return '.env.dev'
+    env = os.getenv("ENVIRONMENT", "development")
+    if env == "production":
+        return ".env.prod"
+    return ".env.dev"
 
 
 class Settings(BaseSettings):
-
     # App Info
     ENVIRONMENT: str
     DEBUG: bool
@@ -65,8 +65,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str
 
     model_config = SettingsConfigDict(
-        env_file=get_env_file(),
-        env_file_encoding='utf-8'
+        env_file=get_env_file(), env_file_encoding="utf-8"
     )
 
 

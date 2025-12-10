@@ -1,5 +1,7 @@
-from sqlalchemy.orm import Session
 from typing import Optional
+
+from sqlalchemy.orm import Session
+
 from app.models.user import User
 from app.utils.utils import hash_password, verify_password
 
@@ -41,7 +43,15 @@ def authenticate(db: Session, username: str, password: str) -> Optional[User]:
     return user
 
 
-def ensure_admin(db: Session, *, username: str, password: str, full_name: str, email: str, disabled: bool) -> User:
+def ensure_admin(
+    db: Session,
+    *,
+    username: str,
+    password: str,
+    full_name: str,
+    email: str,
+    disabled: bool,
+) -> User:
     admin = get_by_username(db, username)
     if admin:
         return admin

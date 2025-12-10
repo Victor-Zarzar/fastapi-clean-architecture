@@ -1,10 +1,11 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.db.database import get_db
-from app.utils.utils import decode_token, InvalidJWTError
-from app.services.user_service import get_by_username
 from app.models.user import User
+from app.services.user_service import get_by_username
+from app.utils.utils import InvalidJWTError, decode_token
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", scheme_name="JWT")
 
@@ -45,6 +46,7 @@ def require_role(required: str):
         if current_user.role != required:
             raise HTTPException(status_code=403, detail="Forbidden")
         return current_user
+
     return _dep
 
 

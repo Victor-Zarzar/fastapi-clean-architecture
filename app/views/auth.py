@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, Request, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from jwt import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas.auth import Token
+
 from app.db.database import get_db
-from app.utils.utils import TokenType, create_access_token, verify_token
+from app.schemas.auth import Token
 from app.services.user_service import authenticate
+from app.utils.utils import TokenType, create_access_token, verify_token
 
 router = APIRouter()
 
@@ -22,8 +23,7 @@ async def login_for_access_token(
             detail="Incorrect username or password",
         )
 
-    access_token = create_access_token(
-        {"sub": user.username, "role": user.role})
+    access_token = create_access_token({"sub": user.username, "role": user.role})
     return Token(access_token=access_token, token_type="bearer")
 
 

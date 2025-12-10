@@ -1,6 +1,8 @@
 import logging.config
-import yaml
 from pathlib import Path
+
+import yaml
+
 from app.core.config import settings
 
 

@@ -24,7 +24,7 @@ down-dev:
 	docker compose -f $(DEV_COMPOSE) down
 
 logs-dev:
-	docker compose -f $(DEV_COMPOSE) logs -f	
+	docker compose -f $(DEV_COMPOSE) logs -f
 
 test:
 	docker compose -f $(DEV_COMPOSE) exec web pytest
@@ -36,7 +36,7 @@ migrate:
 	docker exec -it $(DOCKER_CONTAINER_NAME) python -m alembic upgrade head
 
 access-db-local:
-	docker exec -it $(DB_CONTAINER_NAME) mysql -u $(DB_USER) -p $(DB_NAME)	
+	docker exec -it $(DB_CONTAINER_NAME) mysql -u $(DB_USER) -p $(DB_NAME)
 
 clean:
 	docker compose -f $(DEV_COMPOSE) down -v --remove-orphans 2>/dev/null || true

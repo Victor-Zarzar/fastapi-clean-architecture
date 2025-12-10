@@ -1,13 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas.costs import CostOfLiving, CostOfLivingCreate
+
+from app.core.dependencies import AdminOnly, get_current_active_user
 from app.db.database import get_db
-from app.core.dependencies import get_current_active_user, AdminOnly
 from app.models.user import User
+from app.schemas.costs import CostOfLiving, CostOfLivingCreate
 from app.services.cost_service import (
     create_cost as create_cost_svc,
-    get_cost as get_cost_svc,
+)
+from app.services.cost_service import (
     delete_cost as delete_cost_svc,
+)
+from app.services.cost_service import (
+    get_cost as get_cost_svc,
 )
 
 router = APIRouter()

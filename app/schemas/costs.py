@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CostOfLivingCreate(BaseModel):
@@ -27,8 +28,7 @@ class CostOfLiving(BaseModel):
 class CostOfLivingUpdate(BaseModel):
     title: Optional[str] = Field(default=None, min_length=3, max_length=255)
     category: Optional[str] = Field(default=None, max_length=100)
-    amount: Optional[Decimal] = Field(
-        default=None, max_digits=12, decimal_places=2)
+    amount: Optional[Decimal] = Field(default=None, max_digits=12, decimal_places=2)
     currency: Optional[str] = Field(default=None, min_length=3, max_length=3)
     city: Optional[str] = Field(default=None, max_length=120)
     country: Optional[str] = Field(default=None, max_length=120)
