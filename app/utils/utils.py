@@ -1,7 +1,7 @@
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 import jwt
 from jwt import InvalidTokenError
@@ -31,10 +31,10 @@ REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
 
 
 async def create_access_token(
-    data: Dict[str, Any], expires_minutes: Optional[int] = None
+    data: dict[str, Any], expires_minutes: int | None = None
 ) -> str:
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(
+    expire = datetime.now(UTC) + timedelta(
         minutes=expires_minutes or settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
     to_encode.update({"exp": expire})
@@ -42,13 +42,13 @@ async def create_access_token(
 
 
 async def create_refresh_token(
-    data: Dict[str, Any], expires_delta: timedelta | None = None
+    data: dict[str, Any], expires_delta: timedelta | None = None
 ) -> str:
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(timezone.utc).replace(tzinfo=None) + expires_delta
+        expire = datetime.now(UTC).replace(tzinfo=None) + expires_delta
     else:
-        expire = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
+        expire = datetime.now(UTC).replace(tzinfo=None) + timedelta(
             days=REFRESH_TOKEN_EXPIRE_DAYS
         )
     to_encode.update({"exp": expire, "token_type": TokenType.REFRESH})
@@ -58,7 +58,7 @@ async def create_refresh_token(
     return encoded_jwt
 
 
-def decode_token(token: str) -> Dict[str, Any]:
+def decode_token(token: str) -> dict[str, Any]:
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
 
@@ -77,8 +77,8 @@ def verify_password(plain: str, hashed: str) -> bool:
 async def verify_token(
     token: str,
     expected_type: TokenType,
-    redis_manager: Optional[RedisManager] = None,
-) -> Dict[str, Any]:
+    redis_manager: RedisManager | None = None,
+) -> dict[str, Any]:
     redis_manager = redis_manager or RedisManager()
 
     try:

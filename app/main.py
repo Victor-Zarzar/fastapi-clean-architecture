@@ -9,7 +9,6 @@ from app.middlewares.cors_middleware import add_cors
 from app.services.redis_service import RedisManager
 from app.views import admin, auth, costs, health, users
 
-# Redis Manager
 redis = RedisManager()
 
 
@@ -20,18 +19,14 @@ app = FastAPI(
     debug=settings.DEBUG,
 )
 
-# CORS Middleware
 add_cors(app)
 
-# Logs (Logger)
 logger.info("Logger loaded successfully!")
 logging.getLogger("slowapi").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
-# Rate Limiter
 setup_rate_limiter(app, enabled=settings.ENABLE_RATE_LIMITER)
 
-# Routes
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(users.router, prefix="/api/v1", tags=["Users"])

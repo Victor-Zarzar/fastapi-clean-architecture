@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import AdminOnly, get_db
-from app.models.health import HealthCheck as HealthCheckORM
 from app.models.user import User
 from app.schemas.health import HealthCheckOut
 

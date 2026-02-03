@@ -12,7 +12,7 @@ COPY ./entrypoint.sh .
 
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-COPY . .
+COPY tests .
 
 EXPOSE 8000
 

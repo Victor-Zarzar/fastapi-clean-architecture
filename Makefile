@@ -29,6 +29,18 @@ logs-dev:
 test:
 	docker compose -f $(DEV_COMPOSE) exec web pytest
 
+build-prod:
+	docker compose -f $(PROD_COMPOSE) build
+
+up-prod:
+	docker compose -f $(PROD_COMPOSE) up
+
+restart-web:
+	docker compose -f $(PROD_COMPOSE) restart web
+
+restart-nginx:
+	docker compose -f $(PROD_COMPOSE) restart nginx
+
 shell:
 	docker exec -it ${DOCKER_CONTAINER_NAME} /bin/bash
 
@@ -39,19 +51,25 @@ access-db-local:
 	docker exec -it $(DB_CONTAINER_NAME) mysql -u $(DB_USER) -p $(DB_NAME)
 
 clean:
-	docker compose -f $(DEV_COMPOSE) down -v --remove-orphans 2>/dev/null || true
-	docker compose -f $(PROD_COMPOSE) down -v --remove-orphans 2>/dev/null || true
-	docker images -q "api-cost-map-web*" | xargs -r docker rmi -f 2>/dev/null || true
-	docker system prune -f --volumes 2>/dev/null || true
-	sudo rm -f alembic/versions/* 2>/dev/null || true
-	docker builder prune -f 2>/dev/null || true
-	find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
-	find . -name "*.pyc" -type f -delete 2>/dev/null || true
-	rm -rf .pytest_cache .coverage htmlcov 2>/dev/null || true
+	docker compose -f $(DEV_COMPOSE) down -v --remove-orphans --rmi local 2>/dev/null || true
+	docker compose -f $(PROD_COMPOSE) down -v --remove-orphans --rmi local 2>/dev/null || true
+	find . \( -name "__pycache__" -o -name "*.pyc" \) -exec rm -rf {} + 2>/dev/null || true
+	sudo rm -rf .pytest_cache .coverage htmlcov alembic/versions/* 2>/dev/null || true
+
+clean-all: clean
+	docker rmi -f $$(docker compose -f $(DEV_COMPOSE) config --images) 2>/dev/null || true
+	docker rmi -f $$(docker compose -f $(PROD_COMPOSE) config --images) 2>/dev/null || true
+
+format:
+	docker compose -f $(DEV_COMPOSE) exec web ruff format app
+
+lint:
+	docker compose -f $(DEV_COMPOSE) exec web pylint app
+
 
 help:
 	@echo ""
-	@echo "🐍 API Cost MAP ($(DOCKER_TAG)) - Makefile Commands"
+	@echo "API Cost MAP ($(DOCKER_TAG)) - Makefile Commands"
 	@echo "──────────────────────────────────────────────"
 	@echo "Development Commands:"
 	@echo "  make build-dev  ➜ Build image Docker (development)"
@@ -59,10 +77,17 @@ help:
 	@echo "  make stop       ➜ Stop local server"
 	@echo "  make test       ➜ Run tests with pytest"
 	@echo "  make clean      ➜ Clean local environment and containers"
+	@echo "  make format     ➜ Format code with ruff"
+	@echo "  make lint       ➜ Lint code with pylint"
 	@echo ""
 	@echo "Production Commands:"
 	@echo "  make build-prod ➜ Build image Docker (prod)"
 	@echo "  make up-prod    ➜ Start production environment with Docker Compose"
 	@echo "  make down-prod  ➜ Stop production environment"
 	@echo "  make logs-prod  ➜ Show production logs"
+	@echo "  make restart-web ➜ Restart web service"
+	@echo "  make restart-nginx ➜ Restart nginx service"
+	@echo ""
+	@echo "Cleanup Commands:"
+	@echo "  make clean-all  ➜ Clean all local environment and containers"
 	@echo ""

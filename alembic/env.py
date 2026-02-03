@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-import sys
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
@@ -9,7 +7,6 @@ from sqlmodel import SQLModel
 
 from alembic import context
 from app.core.config import settings
-from app.models import user
 from app.models.user import Base as UserBase
 
 config = context.config
