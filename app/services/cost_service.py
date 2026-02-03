@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+
 from app.models.costs import Cost
 from app.schemas.costs import CostOfLivingCreate
 

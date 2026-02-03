@@ -1,10 +1,10 @@
 from time import perf_counter
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.dependencies import AdminOnly
-from app.core.dependencies import get_db
+
+from app.core.dependencies import AdminOnly, get_db
 from app.models.user import User
-from app.models.health import HealthCheck as HealthCheckORM
 from app.schemas.health import HealthCheckOut
 
 router = APIRouter()

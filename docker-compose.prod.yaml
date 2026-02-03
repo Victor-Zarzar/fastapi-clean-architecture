@@ -1,0 +1,90 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    expose:
+      - "8006"
+    env_file: .env.prod
+    restart: always
+    networks:
+      - app-network
+
+  db:
+    image: mysql:9.6.0
+    restart: always
+    container_name: mysql-server-cost-map
+    env_file:
+      - .env.prod
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    command:
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
+      - "--log-error=/var/lib/mysql/error.log"
+      - "--log-error-verbosity=1"
+      - "--general-log=0"
+      - "--slow_query_log=0"
+
+  nginx:
+    image: nginx:1.27.3-alpine
+    container_name: api-cost-map-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    volumes:
+      - ./nginx/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
+      - ./nginx/errors:/usr/share/nginx/html/errors:ro
+      - ./logs/nginx:/var/log/nginx
+    networks:
+      - app-network
+    restart: always
+    env_file: .env.prod
+    command: >
+      /bin/sh -c "envsubst '$${BACKEND_HOST} $${BACKEND_PORT}'  < /etc/nginx/nginx.conf.template  > /etc/nginx/nginx.conf  && exec nginx -g 'daemon off;'"
+
+  loki:
+    image: grafana/loki:3.6.3
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki-config.yml:/etc/loki/local-config.yml
+    command: -config.file=/etc/loki/local-config.yml -config.expand-env=true
+    env_file:
+      - .env.prod
+    networks:
+      - app-network
+
+  promtail:
+    image: grafana/promtail:3.5.1
+    volumes:
+      - ./promtail-config.yml:/etc/promtail/config.yml
+      - ./logs/nginx:/var/log/nginx:ro
+    command: -config.file=/etc/promtail/config.yml -config.expand-env=true -log.level=warn
+    env_file:
+      - .env.prod
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana:12.3.1
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_LOG_LEVEL=warn
+    env_file:
+      - .env.prod
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db_data:

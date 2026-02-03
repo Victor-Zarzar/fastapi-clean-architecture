@@ -1,15 +1,13 @@
 from __future__ import annotations
-from sqlmodel import SQLModel
-from app.models.user import Base as UserBase
-from app.models import user
-from app.core.config import settings
-
-import os
-import sys
 
 from logging.config import fileConfig
-from alembic import context
+
 from sqlalchemy import engine_from_config, pool
+from sqlmodel import SQLModel
+
+from alembic import context
+from app.core.config import settings
+from app.models.user import Base as UserBase
 
 config = context.config
 if config.config_file_name is not None:

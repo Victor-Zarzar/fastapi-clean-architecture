@@ -1,5 +1,4 @@
-from typing import Optional
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel
 
 
 class Token(BaseModel):
@@ -8,5 +7,5 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    sub: Optional[str] = None
-    role: Optional[str] = None
+    sub: str | None = None
+    role: str | None = None

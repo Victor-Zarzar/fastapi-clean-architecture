@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
-from app.core.config import settings, logger
+
+from app.core.config import logger, settings
 from app.services.user_service import ensure_admin
 from app.utils.utils import get_password_hash
 

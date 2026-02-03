@@ -1,5 +1,4 @@
-from typing import Optional
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class UserBase(BaseModel):
@@ -13,8 +12,8 @@ class UserBase(BaseModel):
 class UserOut(UserBase):
     id: int
     username: str
-    full_name: Optional[str] = None
-    email: Optional[EmailStr] = None
+    full_name: str | None = None
+    email: EmailStr | None = None
     role: str
     disabled: bool = False
 

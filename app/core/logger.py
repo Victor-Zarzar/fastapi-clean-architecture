@@ -1,18 +1,18 @@
 import logging.config
-import yaml
 from pathlib import Path
+
+import yaml
+
 from app.core.config import settings
 
 
-# Logger main to wrap at the highest level of the application.
 def setup_logger():
     config_path = Path(__file__).resolve().parent.parent.parent / "logger.yaml"
-    with open(config_path, "r") as f:
+    with open(config_path) as f:
         config = yaml.safe_load(f)
 
     log_level = settings.LOG_LEVEL.upper() if settings.LOG_LEVEL else "INFO"
 
-    # Set levels dynamically
     config["root"]["level"] = log_level
 
     if "app" in config.get("loggers", {}):

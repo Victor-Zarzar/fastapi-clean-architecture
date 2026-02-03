@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
-from app.models.user import User
+
 from app.core.dependencies import AdminOnly
+from app.models.user import User
 
 router = APIRouter()
 

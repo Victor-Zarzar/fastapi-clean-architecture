@@ -1,12 +1,14 @@
-from pwdlib import PasswordHash
 import re
-from app.services.redis_service import RedisManager
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime, timedelta
+from enum import Enum
+from typing import Any
+
 import jwt
 from jwt import InvalidTokenError
+from pwdlib import PasswordHash
+
 from app.core.config import settings
-from enum import Enum
+from app.services.redis_service import RedisManager
 
 
 class TokenType(str, Enum):
@@ -19,7 +21,8 @@ password_hash = PasswordHash.recommended()
 InvalidJWTError = InvalidTokenError
 
 EMAIL_REGEX = re.compile(
-    r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
+    r"([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+"
+)
 
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
@@ -27,30 +30,35 @@ ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
 
 
-async def create_access_token(data: Dict[str, Any], expires_minutes: Optional[int] = None) -> str:
+async def create_access_token(
+    data: dict[str, Any], expires_minutes: int | None = None
+) -> str:
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(
+    expire = datetime.now(UTC) + timedelta(
         minutes=expires_minutes or settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
-async def create_refresh_token(data: Dict[str, Any], expires_delta: timedelta | None = None) -> str:
+async def create_refresh_token(
+    data: dict[str, Any], expires_delta: timedelta | None = None
+) -> str:
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(timezone.utc).replace(
-            tzinfo=None) + expires_delta
+        expire = datetime.now(UTC).replace(tzinfo=None) + expires_delta
     else:
-        expire = datetime.now(timezone.utc).replace(tzinfo=None) + \
-            timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+        expire = datetime.now(UTC).replace(tzinfo=None) + timedelta(
+            days=REFRESH_TOKEN_EXPIRE_DAYS
+        )
     to_encode.update({"exp": expire, "token_type": TokenType.REFRESH})
     encoded_jwt: str = jwt.encode(
-        to_encode, SECRET_KEY.get_secret_value(), algorithm=ALGORITHM)
+        to_encode, SECRET_KEY.get_secret_value(), algorithm=ALGORITHM
+    )
     return encoded_jwt
 
 
-def decode_token(token: str) -> Dict[str, Any]:
+def decode_token(token: str) -> dict[str, Any]:
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
 
@@ -69,9 +77,8 @@ def verify_password(plain: str, hashed: str) -> bool:
 async def verify_token(
     token: str,
     expected_type: TokenType,
-    redis_manager: Optional[RedisManager] = None,
-) -> Dict[str, Any]:
-
+    redis_manager: RedisManager | None = None,
+) -> dict[str, Any]:
     redis_manager = redis_manager or RedisManager()
 
     try:

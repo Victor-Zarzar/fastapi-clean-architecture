@@ -1,0 +1,19 @@
+server:
+  http_listen_port: ${PROMTAIL_HTTP_PORT}
+  grpc_listen_port: 0
+
+positions:
+  filename: ${PROMTAIL_POSITIONS_FILE}
+
+clients:
+  - url: ${LOKI_URL}
+
+scrape_configs:
+  - job_name: nginx-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          service: nginx-cost-map
+          __path__: ${NGINX_LOG_PATH}/*.log

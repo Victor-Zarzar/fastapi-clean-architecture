@@ -1,48 +1,40 @@
 import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List
 
 
-# Function to search for .env
 def get_env_file():
-    env = os.getenv('ENVIRONMENT', 'development')
-    if env == 'production':
-        return '.env.prod'
-    return '.env.dev'
+    env = os.getenv("ENVIRONMENT", "development")
+    if env == "production":
+        return ".env.prod"
+    return ".env.dev"
 
 
 class Settings(BaseSettings):
-
-    # App Info
     ENVIRONMENT: str
     DEBUG: bool
     APP_NAME: str
 
-    # Auth/JWT
     SECRET_KEY: str
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
 
-    # Admin seed
     ADMIN_USERNAME: str
     ADMIN_PASSWORD: str
     ADMIN_FULL_NAME: str
     ADMIN_EMAIL: str
     ADMIN_DISABLED: bool = False
 
-    # Rate Limiting
     ENABLE_RATE_LIMITER: bool = False
     RATE_LIMIT_REQUESTS: int
     RATE_LIMIT_WINDOW: int
 
-    # MySQL
     MYSQL_ROOT_PASSWORD: str
     MYSQL_DATABASE: str
     MYSQL_USER: str
     MYSQL_PASSWORD: str
 
-    # Database
     DATABASE_URL: str
     DATABASE_HOST: str
     DATABASE_PORT: int
@@ -50,23 +42,32 @@ class Settings(BaseSettings):
     DATABASE_USER: str
     DATABASE_PASS: str
 
-    # Redis
     REDIS_LOCATION: str
     REDIS_PORT: int
 
-    # CORS
-    ALLOWED_ORIGINS: List[str]
+    ALLOWED_ORIGINS: list[str]
 
-    # Rate Limiting
-    RATE_LIMIT_REQUESTS: int
-    RATE_LIMIT_WINDOW: int
-
-    # Logs
     LOG_LEVEL: str
 
+    LOKI_HTTP_PORT: int | None = None
+    LOKI_GRPC_PORT: int | None = None
+    LOKI_RETENTION_PERIOD: str | None = None
+    LOKI_DATA_PATH: str | None = None
+
+    PROMTAIL_HTTP_PORT: int | None = None
+    PROMTAIL_POSITIONS_FILE: str | None = None
+    LOKI_URL: str | None = None
+
+    GRAFANA_PORT: int | None = None
+    GRAFANA_ADMIN_USER: str | None = None
+    GRAFANA_ADMIN_PASSWORD: str | None = None
+    GRAFANA_DOMAIN: str | None = None
+    GRAFANA_ROOT_URL: str | None = None
+
+    NGINX_LOG_PATH: str | None = None
+
     model_config = SettingsConfigDict(
-        env_file=get_env_file(),
-        env_file_encoding='utf-8'
+        env_file=get_env_file(), env_file_encoding="utf-8"
     )
 
 

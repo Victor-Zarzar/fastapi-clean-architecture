@@ -14,7 +14,7 @@ services:
       - .:/app
 
   db:
-    image: mysql
+    image: mysql:9.6.0
     restart: always
     container_name: mysql-server
     env_file:

@@ -104,3 +104,10 @@ nginx/logs/
 
 # alembic
 alembic/versions/*
+
+# Ruff
+.ruff_cache/
+.ruff.toml
+
+# Grafana
+grafana/
