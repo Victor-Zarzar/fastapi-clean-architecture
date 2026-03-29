@@ -14,7 +14,7 @@ python-dotenv
 pymysql==1.1.2
 PyJWT==2.10.1
 pwdlib[argon2]
-cryptography==46.0.5
+cryptography==46.0.6
 pydantic[email]
 redis==7.0.1
 rq==2.6.0
