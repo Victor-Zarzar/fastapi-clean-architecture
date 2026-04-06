@@ -3,17 +3,18 @@ from __future__ import annotations
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
-from sqlmodel import SQLModel
 
 from alembic import context
 from app.core.config import settings
-from app.models.user import Base as UserBase
+from app.db.base import Base
+from app.models import *
 
 config = context.config
+
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = [UserBase.metadata, SQLModel.metadata]
+target_metadata = Base.metadata
 
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 

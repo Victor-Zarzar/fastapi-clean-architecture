@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 python - <<'PY'
 import os, time, socket, sys
 host = os.environ.get("DATABASE_HOST")
@@ -15,7 +17,6 @@ sys.exit(1)
 PY
 
 if [ -f "./alembic.ini" ]; then
-  alembic revision --autogenerate -m "init"
   alembic upgrade head
 fi
 

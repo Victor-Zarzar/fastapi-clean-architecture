@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     REDIS_LOCATION: str
     REDIS_PORT: int
 
+    KAFKA_BOOTSTRAP_SERVERS: str
+    KAFKA_TOPIC: str
+    KAFKA_CONSUMER_GROUP: str
+
     ALLOWED_ORIGINS: list[str]
 
     LOG_LEVEL: str

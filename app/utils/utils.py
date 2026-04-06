@@ -8,7 +8,7 @@ from jwt import InvalidTokenError
 from pwdlib import PasswordHash
 
 from app.core.config import settings
-from app.services.redis_service import RedisManager
+from app.helpers.redis import RedisManager
 
 
 class TokenType(str, Enum):
@@ -53,7 +53,7 @@ async def create_refresh_token(
         )
     to_encode.update({"exp": expire, "token_type": TokenType.REFRESH})
     encoded_jwt: str = jwt.encode(
-        to_encode, SECRET_KEY.get_secret_value(), algorithm=ALGORITHM
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
     return encoded_jwt
 

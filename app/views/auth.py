@@ -23,7 +23,7 @@ async def login_for_access_token(
             detail="Incorrect username or password",
         )
 
-    access_token = create_access_token({"sub": user.username, "role": user.role})
+    access_token = await create_access_token({"sub": user.username, "role": user.role})
     return Token(access_token=access_token, token_type="bearer")
 
 
@@ -53,5 +53,5 @@ async def refresh_access_token(
             detail="Invalid token payload.",
         )
 
-    new_access_token = create_access_token({"sub": subject})
+    new_access_token = await create_access_token({"sub": subject})
     return Token(access_token=new_access_token, token_type="bearer")

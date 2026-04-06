@@ -102,9 +102,6 @@ __pycache__/
 nginx/crs/
 nginx/logs/
 
-# alembic
-alembic/versions/*
-
 # Ruff
 .ruff_cache/
 .ruff.toml

@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from sqlalchemy import Index, Integer, Numeric, String
+from sqlalchemy import Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -16,5 +16,3 @@ class Cost(Base):
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="BRL")
     city: Mapped[str | None] = mapped_column(String(120))
     country: Mapped[str | None] = mapped_column(String(120))
-
-    __table_args__ = (Index("ix_costs_title", "title"),)

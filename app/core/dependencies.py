@@ -7,7 +7,7 @@ from app.models.user import User
 from app.services.user_service import get_by_username
 from app.utils.utils import InvalidJWTError, decode_token
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", scheme_name="JWT")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", scheme_name="JWT")
 
 
 async def get_current_user(
