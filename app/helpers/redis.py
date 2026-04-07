@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 import redis.asyncio as redis
 from redis import Redis as redis1
 from rq import Queue
@@ -21,12 +23,28 @@ class RedisManager:
         result = await conn.exists(token)
         return bool(result)
 
-    async def put_jwt_redis(self, token: str):
-        try:
-            conn = redis.Redis(connection_pool=self.pool)
-            await conn.set(token, 0)
-        except redis.RedisError as err:
-            print(f"Erro ao tentar adicionar token no redis {err}")
+    async def put_jwt_redis(self, token: str, exp: int):
+
+        conn = self.get_client()
+        now = int(datetime.now(UTC).timestamp())
+        ttl = exp - now
+        if ttl > 0:
+            await conn.set(token, 1, ex=ttl)
+
+    async def blacklist_token(self, token: str, exp: int):
+
+        conn = self.get_client()
+
+        now = int(datetime.now(UTC).timestamp())
+        ttl = exp - now
+
+        if ttl > 0:
+            await conn.set(f"blacklist:{token}", "1", ex=ttl)
+
+    async def is_token_blacklisted(self, token: str) -> bool:
+        conn = self.get_client()
+        result = await conn.exists(f"blacklist:{token}")
+        return bool(result)
 
     async def init_rq_queue(self):
         try:

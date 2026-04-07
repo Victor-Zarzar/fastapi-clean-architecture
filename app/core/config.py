@@ -32,10 +32,9 @@ class Settings(BaseSettings):
     RATE_LIMIT_REQUESTS: int
     RATE_LIMIT_WINDOW: int
 
-    MYSQL_ROOT_PASSWORD: str
-    MYSQL_DATABASE: str
-    MYSQL_USER: str
-    MYSQL_PASSWORD: str
+    POSTGRES_DB: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
 
     DATABASE_URL: str
     DATABASE_HOST: str

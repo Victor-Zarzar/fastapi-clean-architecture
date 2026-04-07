@@ -8,29 +8,37 @@ services:
     env_file: .env.prod
     restart: always
     depends_on:
-      - db
+      - postgres
       - zookeeper
       - kafka
+      - redis
     networks:
       - app-network
 
-  db:
-    image: mysql:9.6.0
+  redis:
+    image: redis:8.6.2-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    env_file:
+      - .env.prod
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres-server
     restart: always
-    container_name: mysql-server-cost-map
     env_file:
       - .env.prod
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - db_data:/var/lib/mysql
-    command:
-      - "--character-set-server=utf8mb4"
-      - "--collation-server=utf8mb4_unicode_ci"
-      - "--log-error=/var/lib/mysql/error.log"
-      - "--log-error-verbosity=1"
-      - "--general-log=0"
-      - "--slow_query_log=0"
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
@@ -118,3 +126,4 @@ networks:
 
 volumes:
   db_data:
+  redis-data:

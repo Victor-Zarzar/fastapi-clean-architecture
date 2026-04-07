@@ -1,8 +1,8 @@
-"""initial schema
+"""
 
-Revision ID: aedd18a7577d
+Revision ID: 3cd3847f0ecc
 Revises:
-Create Date: 2026-04-06 13:33:34.637360+00:00
+Create Date: 2026-04-07 18:32:38.728561+00:00
 
 """
 
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "aedd18a7577d"
+revision = "3cd3847f0ecc"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -42,7 +42,7 @@ def upgrade() -> None:
             "created_at",
             sa.DateTime(timezone=True),
             server_default=sa.text("now()"),
-            nullable=True,
+            nullable=False,
         ),
         sa.PrimaryKeyConstraint("id"),
     )

@@ -56,14 +56,16 @@
 
 ### Core Technologies
 
-- **Python 3.12+** - Modern Python with latest features
-- **FastAPI** - High-performance async web framework
-- **MySQL 9.6** - Robust relational database management system
-- **Aio Kafka** - Kafka with FastAPI using asynchronous system and producer for publishing events
+- **Python 3.12+** - Modern Python with latest language features and performance improvements
+- **FastAPI** - High-performance async web framework with automatic OpenAPI documentation
+- **PostgreSQL 17** - Robust, production-grade relational database management system
+- **Aio Kafka** - Asynchronous Kafka client for event streaming and producer/consumer workflows
 - **Nginx** - High-performance reverse proxy and load balancer
-- **Docker** - Containerized deployment
-- **Alembic** - Database migration management
-- **Pytest** - Comprehensive testing framework
+- **Docker** - Containerized, reproducible deployment across environments
+- **SQLAlchemy 2.0** - Async ORM and query builder for Python with full PostgreSQL support
+- **Redis** - In-memory data store used for caching and session management
+- **Alembic** - Lightweight database migration tool for SQLAlchemy schema version control
+- **Pytest** - Comprehensive testing framework for unit and integration tests
 
 ### Infrastructure & Monitoring
 
@@ -76,15 +78,17 @@
 ### Features & Integrations
 
 - **Database Migrations** - Automated schema version control with Alembic
-- **MySQL Integration** - Production-ready database with persistent storage
+- **PostgreSQL Integration** - Production-ready database with persistent storage
+- **Argon2** - Standard secure password hashing
 - **Reverse Proxy** - Nginx with environment-based configuration
+- **JWT Authentication** - Stateless token-based authentication and authorization
 - **Centralized Logging** - Grafana/Loki stack for log aggregation and visualization
-- **RESTful API** - Clean and scalable API architecture
-- **Environment-based Configuration** - Separate dev/prod settings
+- **RESTful API** - Clean and scalable API architecture following Clean Architecture principles
+- **Environment-based Configuration** - Separate dev/prod settings with .env files
 - **Custom Error Pages** - Branded error handling through Nginx
 - **Log Management** - Nginx access and error logs with Promtail collection
 - **Hot Reload** - Development mode with automatic code reloading
-- **Database Shell Access** - Direct MySQL command-line interface
+- **Database Shell Access** - Direct PostgreSQL psql command-line interface
 - **Code Quality Tools** - Automated formatting and linting
 
 ---
@@ -283,7 +287,7 @@ docker exec -it api-cost-map python -m alembic downgrade -1
 
 ### Direct Database Access
 
-Access the MySQL shell:
+Access the PostgreSQL shell:
 
 ```bash
 make access-db-local
@@ -294,14 +298,17 @@ This opens an interactive MySQL session where you can run SQL queries directly.
 **Example queries:**
 
 ```sql
--- Show all tables
-SHOW TABLES;
+--- List all tables in the current schema
+\dt
 
 -- Describe a table structure
-DESCRIBE your_table_name;
+\d your_table_name
 
 -- Query data
 SELECT * FROM your_table_name LIMIT 10;
+
+-- Quit the session
+\q
 ```
 
 ---
@@ -312,54 +319,57 @@ SELECT * FROM your_table_name LIMIT 10;
 
 ```
 api-cost-map/
-app/
-├── api/v1/endpoints/
-│   ├── auth.py
-│   ├── user.py
-│   └── ...
-├── repository/
-│   ├── user_repository.py
-│   └── cost_repository.py
-├── services/
-│   ├── auth_service.py
-│   ├── user_service.py
-│   └── cost_service.py
-├── schemas/
-├── models/
-├── core/
-│   ├── config.py
-│   ├── exceptions.py
-│   └── security.py
-└── db/
-│   └── database.py
-├── alembic/                    # Database migrations
-│   ├── versions/               # Migration files
-│   └── env.py                  # Alembic configuration
-├── nginx/                      # Nginx configuration
-│   ├── nginx.conf.template     # Nginx config with env vars
-│   └── errors/                 # Custom error pages
-├── grafana/                    # Grafana configuration
-│   └── provisioning/           # Auto-provisioned datasources/dashboards
-├── logs/                       # Application logs
-│   └── nginx/                  # Nginx access and error logs
-├── tests/                      # Test files
-│   ├── test_api.py             # API endpoint tests
-│   └── test_services.py        # Service layer tests
-├── docker-compose.dev.yaml     # Development configuration
-├── docker-compose.prod.yaml    # Production configuration
-├── Dockerfile                  # Development Docker image
-├── Dockerfile.prod             # Production Docker image
-├── entrypoint.sh               # Container startup script
-├── loki-config.yml             # Loki log aggregation config
-├── promtail-config.yml         # Promtail log collection config
-├── requirements.txt            # Python dependencies
-├── .env.example                # Environment variables template
-├── .env.dev                    # Development environment (not in git)
-├── .env.prod                   # Production environment (not in git)
-├── alembic.ini                 # Alembic configuration file
-├── pyproject.toml              # Python project configuration
-├── Makefile                    # Build automation
-└── README.md                   # This file
+├── app/
+│   ├── api/
+│   │   └── v1/
+│   │       └── endpoints/
+│   │           ├── auth.py              # Authentication routes
+│   │           ├── user.py              # User management routes
+│   │           ├── cost.py              # Cost management routes
+│   │           └── ...
+│   ├── repository/
+│   │   ├── user_repository.py           # User data access layer
+│   │   └── cost_repository.py           # Cost data access layer
+│   ├── services/
+│   │   ├── auth_service.py              # Authentication business logic
+│   │   ├── user_service.py              # User business logic
+│   │   └── cost_service.py              # Cost business logic
+│   ├── schemas/                         # Pydantic request/response models
+│   ├── models/                          # SQLAlchemy ORM models
+│   ├── core/
+│   │   ├── config.py                    # App settings and environment config
+│   │   ├── exceptions.py                # Custom exception handlers
+│   │   └── security.py                  # Auth utilities (JWT, hashing)
+│   └── db/
+│       └── database.py                  # Database session and engine setup
+├── alembic/                             # Database migrations
+│   ├── versions/                        # Auto-generated migration files
+│   └── env.py                           # Alembic environment configuration
+├── nginx/                               # Nginx reverse proxy
+│   ├── nginx.conf.template              # Config template with env vars
+│   └── errors/                          # Custom branded error pages
+├── grafana/                             # Grafana monitoring
+│   └── provisioning/                    # Auto-provisioned datasources & dashboards
+├── logs/                                # Application logs (gitignored)
+│   └── nginx/                           # Nginx access and error logs
+├── tests/                               # Test suite
+│   ├── test_api.py                      # API endpoint integration tests
+│   └── test_services.py                 # Service layer unit tests
+├── docker-compose.dev.yaml              # Development orchestration
+├── docker-compose.prod.yaml             # Production orchestration
+├── Dockerfile                           # Development image
+├── Dockerfile.prod                      # Production image (optimized)
+├── entrypoint.sh                        # Container startup & migration script
+├── loki-config.yml                      # Loki log aggregation configuration
+├── promtail-config.yml                  # Promtail log collection configuration
+├── requirements.txt                     # Python dependencies
+├── .env.example                         # Environment variables template
+├── .env.dev                             # Development environment (not in git)
+├── .env.prod                            # Production environment (not in git)
+├── alembic.ini                          # Alembic CLI configuration
+├── pyproject.toml                       # Ruff, pylint, and project metadata
+├── Makefile                             # Build and task automation
+└── README.md                            # Project documentation
 ```
 
 ---

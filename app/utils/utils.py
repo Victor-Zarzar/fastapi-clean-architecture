@@ -21,7 +21,7 @@ password_hash = PasswordHash.recommended()
 InvalidJWTError = InvalidTokenError
 
 EMAIL_REGEX = re.compile(
-    r"([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+"
+    r"([A-Za-z0-9]+[._-])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Za-z]{2,})+"
 )
 
 SECRET_KEY = settings.SECRET_KEY
@@ -35,38 +35,38 @@ def create_access_token(
 ) -> str:
     to_encode = data.copy()
     expire = datetime.now(UTC) + timedelta(
-        minutes=expires_minutes or settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        minutes=expires_minutes or ACCESS_TOKEN_EXPIRE_MINUTES
     )
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    to_encode.update(
+        {
+            "exp": expire,
+            "token_type": TokenType.ACCESS,
+        }
+    )
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def create_refresh_token(
     data: dict[str, Any], expires_delta: timedelta | None = None
 ) -> str:
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(UTC).replace(tzinfo=None) + expires_delta
-    else:
-        expire = datetime.now(UTC).replace(tzinfo=None) + timedelta(
-            days=REFRESH_TOKEN_EXPIRE_DAYS
-        )
-    to_encode.update({"exp": expire, "token_type": TokenType.REFRESH})
-    encoded_jwt: str = jwt.encode(
-        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    expire = datetime.now(UTC) + (
+        expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     )
-    return encoded_jwt
+    to_encode.update(
+        {
+            "exp": expire,
+            "token_type": TokenType.REFRESH,
+        }
+    )
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def decode_token(token: str) -> dict[str, Any]:
-    return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
 
-def hash_password(plain: str) -> str:
-    return password_hash.hash(plain)
-
-
-def get_password_hash(password):
+def hash_password(password: str) -> str:
     return password_hash.hash(password)
 
 
@@ -74,7 +74,7 @@ def verify_password(plain: str, hashed: str) -> bool:
     return password_hash.verify(plain, hashed)
 
 
-def verify_token(
+async def verify_token(
     token: str,
     expected_type: TokenType,
     redis_manager: RedisManager | None = None,
@@ -88,25 +88,19 @@ def verify_token(
 
     token_type = payload.get("token_type")
 
-    if token_type is None:
-        token_type = TokenType.ACCESS
-
     if token_type != expected_type:
         raise InvalidJWTError("Invalid token type.")
 
-    exists = redis_manager.check_if_jwt_exists(token)
+    exists = await redis_manager.check_if_jwt_exists(token)
     if not exists:
-        raise InvalidJWTError("Token not found in Redis or revoked.")
+        raise InvalidJWTError("Token not found in Redis.")
+
+    is_blacklisted = await redis_manager.is_token_blacklisted(token)
+    if is_blacklisted:
+        raise InvalidJWTError("Token revoked.")
 
     return payload
 
 
 def is_email_valid(email: str) -> bool:
-    if not re.fullmatch(EMAIL_REGEX, email):
-        return False
-
-    domain = email.split("@")[1]
-    if domain == "gmail.com":
-        return True
-
-    return False
+    return bool(re.fullmatch(EMAIL_REGEX, email))

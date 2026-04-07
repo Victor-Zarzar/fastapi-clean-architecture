@@ -9,10 +9,7 @@ from app.core.limiter import setup_rate_limiter
 from app.core.logger import logger
 from app.db.seed import run_dev_seed
 from app.helpers.producer import producer
-from app.helpers.redis import RedisManager
 from app.middlewares.cors_middleware import add_cors
-
-redis = RedisManager()
 
 
 @asynccontextmanager

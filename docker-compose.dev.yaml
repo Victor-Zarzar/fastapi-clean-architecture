@@ -7,13 +7,16 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      - postgres
       - zookeeper
       - kafka
+      - redis
     env_file:
       - .env.dev
     volumes:
       - .:/app
+    networks:
+      - app-network
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
@@ -24,6 +27,8 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    networks:
+      - app-network
 
   kafka:
     image: confluentinc/cp-kafka:7.6.1
@@ -40,24 +45,38 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - app-network
 
-  db:
-    image: mysql:9.6.0
+  redis:
+    image: redis:8.6.2-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    env_file:
+      - .env.dev
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres-server
     restart: always
-    container_name: mysql-server
     env_file:
       - .env.dev
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - db_data:/var/lib/mysql
-    command:
-      - "--character-set-server=utf8mb4"
-      - "--collation-server=utf8mb4_unicode_ci"
-      - "--log-error=/var/lib/mysql/error.log"
-      - "--log-error-verbosity=1"
-      - "--general-log=0"
-      - "--slow_query_log=0"
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
 volumes:
   db_data:
+  redis-data:
+
+networks:
+  app-network:
+    driver: bridge

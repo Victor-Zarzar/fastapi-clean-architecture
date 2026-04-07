@@ -1,20 +1,22 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserBase(BaseModel):
-    username: str
-    email: EmailStr | None = None
-    full_name: str | None = None
-    role: str
-    disabled: bool
+    username: str = Field(min_length=3, max_length=64)
+    email: EmailStr
+    full_name: str | None = Field(default=None, max_length=255)
+    role: str = "basic"
+    disabled: bool = False
+
+
+class UserCreate(BaseModel):
+    username: str = Field(min_length=3, max_length=64)
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=128)
+    full_name: str | None = Field(default=None, max_length=255)
 
 
 class UserOut(UserBase):
     id: int
-    username: str
-    full_name: str | None = None
-    email: EmailStr | None = None
-    role: str
-    disabled: bool = False
 
     model_config = ConfigDict(from_attributes=True)

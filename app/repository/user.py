@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.models.user import User
@@ -17,6 +17,21 @@ class UserRepository:
         stmt = select(User).where(User.username == username)
         result = self.db.execute(stmt)
         return result.scalar_one_or_none()
+
+    def get_by_email(self, email: str) -> User | None:
+        stmt = select(User).where(User.email == email)
+        result = self.db.execute(stmt)
+        return result.scalar_one_or_none()
+
+    def get_by_username_or_email(self, username: str, email: str) -> User | None:
+        stmt = select(User).where(or_(User.username == username, User.email == email))
+        result = self.db.execute(stmt)
+        return result.scalar_one_or_none()
+
+    def get_all(self) -> list[User]:
+        stmt = select(User)
+        result = self.db.execute(stmt)
+        return result.scalars().all()
 
     def create(
         self,

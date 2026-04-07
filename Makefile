@@ -7,8 +7,8 @@ IMAGE_API = $(DOCKER_IMAGE_NAME)-api:$(DOCKER_TAG)
 COMPOSE = docker compose
 DEV_COMPOSE = docker-compose.dev.yaml
 PROD_COMPOSE = docker-compose.prod.yaml
-DB_CONTAINER_NAME = mysql-server
-DB_PORT = 3306
+DB_CONTAINER_NAME = postgres-server
+DB_PORT = 5432
 DB_NAME = costdb
 DB_USER = admin
 DB_PASS = pass
@@ -45,6 +45,9 @@ restart-nginx:
 shell:
 	docker exec -it $(DOCKER_CONTAINER_NAME) /bin/bash
 
+migration:
+	docker exec -it $(DOCKER_CONTAINER_NAME) python -m alembic revision --autogenerate -m "$(m)"
+
 migrate:
 	docker exec -it $(DOCKER_CONTAINER_NAME) alembic upgrade head
 
@@ -55,7 +58,7 @@ history:
 	docker exec -it $(DOCKER_CONTAINER_NAME) alembic history
 
 access-db-local:
-	docker exec -it $(DB_CONTAINER_NAME) mysql -u $(DB_USER) -p $(DB_NAME)
+	docker exec -it $(DB_CONTAINER_NAME) psql -U $(DB_USER) -d $(DB_NAME)
 
 clean:
 	docker compose -f $(DEV_COMPOSE) down -v --remove-orphans --rmi local 2>/dev/null || true

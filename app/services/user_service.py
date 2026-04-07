@@ -5,6 +5,12 @@ from app.repository.user import UserRepository
 from app.utils.utils import hash_password, verify_password
 
 
+class UserAlreadyExistsError(Exception):
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(message)
+
+
 class UserService:
     def __init__(self, db: Session):
         self.repository = UserRepository(db)
@@ -15,17 +21,30 @@ class UserService:
     def get_by_username(self, username: str) -> User | None:
         return self.repository.get_by_username(username)
 
+    def get_by_email(self, email: str) -> User | None:
+        return self.repository.get_by_email(email)
+
+    def get_all(self) -> list[User]:
+        return self.repository.get_all()
+
     def create_user(
         self,
         *,
         username: str,
         password: str,
         full_name: str | None = None,
-        email: str | None = None,
+        email: str,
         role: str = "basic",
         disabled: bool = False,
     ) -> User:
+        if self.repository.get_by_username(username):
+            raise UserAlreadyExistsError("Username already registered.")
+
+        if self.repository.get_by_email(email):
+            raise UserAlreadyExistsError("Email already registered.")
+
         hashed_password = hash_password(password)
+
         return self.repository.create(
             username=username,
             hashed_password=hashed_password,
@@ -35,10 +54,14 @@ class UserService:
             disabled=disabled,
         )
 
-    def authenticate(self, username: str, password: str) -> User | None:
-        user = self.repository.get_by_username(username)
-        if not user or not verify_password(password, user.hashed_password):
+    def authenticate_by_email(self, email: str, password: str) -> User | None:
+        user = self.repository.get_by_email(email)
+        if not user:
             return None
+
+        if not verify_password(password, user.hashed_password):
+            return None
+
         return user
 
     def ensure_admin(
@@ -50,9 +73,10 @@ class UserService:
         email: str,
         disabled: bool,
     ) -> User:
-        admin = self.repository.get_by_username(username)
+        admin = self.repository.get_by_email(email)
         if admin:
             return admin
+
         return self.create_user(
             username=username,
             password=password,
