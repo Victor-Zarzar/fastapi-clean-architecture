@@ -1,64 +1,63 @@
 from sqlalchemy.orm import Session
 
 from app.models.user import User
+from app.repository.user import UserRepository
 from app.utils.utils import hash_password, verify_password
 
 
-def get_by_username(db: Session, username: str) -> User | None:
-    return db.query(User).filter(User.username == username).first()
+class UserService:
+    def __init__(self, db: Session):
+        self.repository = UserRepository(db)
 
+    def get_by_id(self, user_id: int) -> User | None:
+        return self.repository.get_by_id(user_id)
 
-def create_user(
-    db: Session,
-    *,
-    username: str,
-    password: str,
-    full_name: str | None = None,
-    email: str | None = None,
-    role: str = "basic",
-    disabled: bool = False,
-) -> User:
-    obj = User(
-        username=username,
-        full_name=full_name,
-        email=email,
-        role=role,
-        disabled=disabled,
-        hashed_password=hash_password(password),
-    )
-    db.add(obj)
-    db.commit()
-    db.refresh(obj)
-    return obj
+    def get_by_username(self, username: str) -> User | None:
+        return self.repository.get_by_username(username)
 
+    def create_user(
+        self,
+        *,
+        username: str,
+        password: str,
+        full_name: str | None = None,
+        email: str | None = None,
+        role: str = "basic",
+        disabled: bool = False,
+    ) -> User:
+        hashed_password = hash_password(password)
+        return self.repository.create(
+            username=username,
+            hashed_password=hashed_password,
+            full_name=full_name,
+            email=email,
+            role=role,
+            disabled=disabled,
+        )
 
-def authenticate(db: Session, username: str, password: str) -> User | None:
-    user = get_by_username(db, username)
-    if not user:
-        return None
-    if not verify_password(password, user.hashed_password):
-        return None
-    return user
+    def authenticate(self, username: str, password: str) -> User | None:
+        user = self.repository.get_by_username(username)
+        if not user or not verify_password(password, user.hashed_password):
+            return None
+        return user
 
-
-def ensure_admin(
-    db: Session,
-    *,
-    username: str,
-    password: str,
-    full_name: str,
-    email: str,
-    disabled: bool,
-) -> User:
-    admin = get_by_username(db, username)
-    if admin:
-        return admin
-    return create_user(
-        db,
-        username=username,
-        password=password,
-        full_name=full_name,
-        email=email,
-        role="admin",
-        disabled=disabled,
-    )
+    def ensure_admin(
+        self,
+        *,
+        username: str,
+        password: str,
+        full_name: str,
+        email: str,
+        disabled: bool,
+    ) -> User:
+        admin = self.repository.get_by_username(username)
+        if admin:
+            return admin
+        return self.create_user(
+            username=username,
+            password=password,
+            full_name=full_name,
+            email=email,
+            role="admin",
+            disabled=disabled,
+        )

@@ -12,7 +12,7 @@ pytest-asyncio==0.25.3
 alembic==1.16.5
 python-dotenv
 pymysql==1.1.2
-PyJWT==2.10.1
+PyJWT==2.12.1
 pwdlib[argon2]
 cryptography==46.0.6
 pydantic[email]
@@ -21,3 +21,4 @@ rq==2.6.0
 pylint==4.0.4
 ruff==0.14.14
 httpx==0.28.1
+aiokafka==0.13.0

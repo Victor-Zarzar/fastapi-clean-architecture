@@ -1,5 +1,5 @@
 <h1 align="center" id="header">
-  API Cost Map - Python FastAPI Application
+  API Cost Map - Python FastAPI Application (Clean Architecture)
 </h1>
 
 <p align="center">
@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  Professional cost mapping and management API built with FastAPI, featuring MySQL database, Nginx reverse proxy, Grafana/Loki logging stack, database migrations with Alembic, and production-ready containerized deployment.
+  Base FastAPI project for applying general RestAPI Application cases.
 </p>
 
 ---
@@ -27,7 +27,6 @@
 - [Prerequisites](#prerequisites)
 - [Installation & Setup](#installation)
 - [Usage](#usage)
-- [Makefile Commands Reference](#makefile-commands)
 - [Database Management](#database)
 - [Project Structure](#project-structure)
 - [Code Quality & Formatting](#code-quality)
@@ -38,7 +37,7 @@
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [License](#license)
-- [Contact](#contact)
+- [Author](#author)
 
 ---
 
@@ -60,6 +59,7 @@
 - **Python 3.12+** - Modern Python with latest features
 - **FastAPI** - High-performance async web framework
 - **MySQL 9.6** - Robust relational database management system
+- **Aio Kafka** - Kafka with FastAPI using asynchronous system and producer for publishing events
 - **Nginx** - High-performance reverse proxy and load balancer
 - **Docker** - Containerized deployment
 - **Alembic** - Database migration management
@@ -111,16 +111,14 @@ Before starting, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/api-cost-map
-cd api-cost-map
+git clone https://github.com/Victor-Zarzar/fastapi-clean-architecture
+cd fastapi-clean-architecture
 ```
 
 ### 2. Open in your editor
 
 ```bash
-code .   # VS Code
-# or
-zed .    # Zed Editor
+zed .
 ```
 
 ### 3. Environment Configuration
@@ -233,30 +231,6 @@ docker logs -f mysql-server
 
 ---
 
-<h2 id="makefile-commands">
-  Makefile Commands Reference
-</h2>
-
-| Command                | Description                                   |
-| ---------------------- | --------------------------------------------- |
-| `make build-dev`       | Build development Docker image                |
-| `make up-dev`          | Start development server with hot reload      |
-| `make down-dev`        | Stop and remove development containers        |
-| `make logs-dev`        | Display development logs in real-time         |
-| `make build-prod`      | Build production Docker image                 |
-| `make up-prod`         | Start production server (detached mode)       |
-| `make down-prod`       | Stop and remove production containers         |
-| `make logs-prod`       | Display production logs in real-time          |
-| `make test`            | Run automated tests with pytest               |
-| `make format`          | Format code with Ruff                         |
-| `make lint`            | Lint code with pylint                         |
-| `make shell`           | Access container bash shell                   |
-| `make migrate`         | Run database migrations with Alembic          |
-| `make access-db-local` | Access MySQL shell directly                   |
-| `make clean`           | Clean local environment and containers        |
-| `make clean-all`       | Remove all containers, volumes, and images    |
-| `make help`            | Show all available commands with descriptions |
-
 ### Running Tests
 
 ```bash
@@ -338,14 +312,26 @@ SELECT * FROM your_table_name LIMIT 10;
 
 ```
 api-cost-map/
-├── app/                        # Application code
-│   ├── main.py                 # FastAPI application entry point
-│   ├── routers/                # API route handlers
-│   ├── models/                 # Database models (SQLAlchemy)
-│   ├── schemas/                # Pydantic schemas
-│   ├── services/               # Business logic
-│   ├── database.py             # Database connection and session
-│   └── config.py               # Configuration management
+app/
+├── api/v1/endpoints/
+│   ├── auth.py
+│   ├── user.py
+│   └── ...
+├── repository/
+│   ├── user_repository.py
+│   └── cost_repository.py
+├── services/
+│   ├── auth_service.py
+│   ├── user_service.py
+│   └── cost_service.py
+├── schemas/
+├── models/
+├── core/
+│   ├── config.py
+│   ├── exceptions.py
+│   └── security.py
+└── db/
+│   └── database.py
 ├── alembic/                    # Database migrations
 │   ├── versions/               # Migration files
 │   └── env.py                  # Alembic configuration
@@ -756,10 +742,12 @@ make up-dev
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
 5. Open a Pull Request
+
+Report issues at: https://github.com/Victor-Zarzar/fastapi-clean-architecture
 
 ### Development Guidelines
 
@@ -780,16 +768,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-<h2 id="contact">
-  Contact
+<h2 id="author">
+  Author
 </h2>
 
 Victor Zarzar - [@Victor-Zarzar](https://github.com/Victor-Zarzar)
 
-Project Link: [https://github.com/Victor-Zarzar/api-cost-map](https://github.com/Victor-Zarzar/api-cost-map)
+Project Link: [https://github.com/Victor-Zarzar/fastapi-clean-architecture](https://github.com/Victor-Zarzar/fastapi-clean-architecture)
 
 ---
-
-<p align="center">
-  Made with by Victor Zarzar
-</p>

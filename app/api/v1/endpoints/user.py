@@ -1,26 +1,33 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.user import UserOut
+from app.services.user_service import UserService
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/user",
+    tags=["user"],
+)
 
 
-@router.get("/users/me", response_model=UserOut)
-async def read_users_me(current_user: User = Depends(get_current_user)):
+@router.get("/me", response_model=UserOut)
+def read_users_me(
+    current_user: User = Depends(get_current_user),
+):
     return current_user
 
 
-@router.get("/users/{user_id}", response_model=UserOut)
-async def read_user_by_id(
+@router.get("/{user_id}", response_model=UserOut)
+def read_user_by_id(
     user_id: int,
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    user = db.query(User).filter(User.id == user_id).first()
+    service = UserService(db)
+    user = service.get_by_id(user_id)
 
     if not user:
         raise HTTPException(
