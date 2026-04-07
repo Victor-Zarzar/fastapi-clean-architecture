@@ -42,6 +42,7 @@ class UserRepository:
         email: str | None = None,
         role: str = "basic",
         disabled: bool = False,
+        email_verified: bool = False,
     ) -> User:
         user = User(
             username=username,
@@ -50,6 +51,7 @@ class UserRepository:
             email=email,
             role=role,
             disabled=disabled,
+            email_verified=email_verified,
         )
         self.db.add(user)
         self.db.commit()

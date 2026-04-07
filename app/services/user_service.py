@@ -36,6 +36,7 @@ class UserService:
         email: str,
         role: str = "basic",
         disabled: bool = False,
+        email_verified: bool = False,
     ) -> User:
         if self.repository.get_by_username(username):
             raise UserAlreadyExistsError("Username already registered.")
@@ -52,6 +53,7 @@ class UserService:
             email=email,
             role=role,
             disabled=disabled,
+            email_verified=email_verified,
         )
 
     def authenticate_by_email(self, email: str, password: str) -> User | None:
@@ -72,6 +74,7 @@ class UserService:
         full_name: str,
         email: str,
         disabled: bool,
+        email_verified: bool = False,
     ) -> User:
         admin = self.repository.get_by_email(email)
         if admin:
@@ -84,4 +87,5 @@ class UserService:
             email=email,
             role="admin",
             disabled=disabled,
+            email_verified=email_verified,
         )

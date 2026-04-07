@@ -14,6 +14,7 @@ from app.helpers.redis import RedisManager
 class TokenType(str, Enum):
     ACCESS = "access"
     REFRESH = "refresh"
+    EMAIL_VERIFICATION = "email_verification"
 
 
 password_hash = PasswordHash.recommended()
@@ -28,6 +29,21 @@ SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
+
+
+def create_email_verification_token(
+    data: dict[str, Any],
+    expires_minutes: int = 30,
+) -> str:
+    to_encode = data.copy()
+    expire = datetime.now(UTC) + timedelta(minutes=expires_minutes)
+    to_encode.update(
+        {
+            "exp": expire,
+            "token_type": TokenType.EMAIL_VERIFICATION,
+        }
+    )
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def create_access_token(
@@ -79,8 +95,6 @@ async def verify_token(
     expected_type: TokenType,
     redis_manager: RedisManager | None = None,
 ) -> dict[str, Any]:
-    redis_manager = redis_manager or RedisManager()
-
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except InvalidTokenError as exc:
@@ -90,6 +104,11 @@ async def verify_token(
 
     if token_type != expected_type:
         raise InvalidJWTError("Invalid token type.")
+
+    if expected_type == TokenType.EMAIL_VERIFICATION:
+        return payload
+
+    redis_manager = redis_manager or RedisManager()
 
     exists = await redis_manager.check_if_jwt_exists(token)
     if not exists:

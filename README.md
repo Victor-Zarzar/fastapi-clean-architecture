@@ -5,7 +5,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
-  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
   <img src="https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white" alt="Nginx">
   <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
   <img src="https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white" alt="Grafana">
@@ -48,10 +48,11 @@
 <p>
 <img src="https://github.com/tandpfun/skill-icons/blob/main/icons/Python-Dark.svg" width="48" title="Python"> 
 <img src="https://github.com/tandpfun/skill-icons/blob/main/icons/FastAPI.svg" width="48" title="FastAPI">
-<img src="https://github.com/tandpfun/skill-icons/blob/main/icons/MySQL-Dark.svg" width="48" title="MySQL">
 <img src="https://github.com/tandpfun/skill-icons/blob/main/icons/Nginx.svg" width="48" title="Nginx">
 <img src="https://github.com/tandpfun/skill-icons/blob/main/icons/Docker.svg" width="48" title="Docker">
 <img src="https://github.com/tandpfun/skill-icons/blob/main/icons/Grafana-Dark.svg" width="48" title="Grafana">
+<img src="https://github.com/tandpfun/skill-icons/blob/main/icons/PostgreSQL-Dark.svg" width="48" title="PostgreSQL">
+<img src="https://github.com/tandpfun/skill-icons/blob/main/icons/Redis-Dark.svg" width="48" title="Redis">
 </p>
 
 ### Core Technologies
@@ -135,7 +136,7 @@ cp .env-example .env.dev
 
 **Key configurations needed:**
 
-- **Database**: MySQL credentials (user, password, database name)
+- **Database**: PostgreSQL credentials (user, password, database)
 - **API Settings**: Host, port, and other application settings
 - **Environment**: Development or production mode
 
@@ -150,7 +151,7 @@ make build-dev
 This will:
 
 - Build the Docker image with tag `api-cost-map-web-api:1.0.0`
-- Set up the MySQL database container
+- Set up the PostgreSQL database container
 - Configure networking between services
 
 ---
@@ -200,7 +201,7 @@ make migrate      # Run database migrations
 #### Database Management
 
 ```bash
-make access-db-local  # Access MySQL shell directly
+make access-db-local  # Access PostgreSQL shell directly
 make migrate          # Apply pending database migrations
 ```
 
@@ -230,7 +231,7 @@ Or directly with Docker:
 
 ```bash
 docker logs -f api-cost-map
-docker logs -f mysql-server
+docker logs -f postgresql-server
 ```
 
 ---
@@ -293,7 +294,7 @@ Access the PostgreSQL shell:
 make access-db-local
 ```
 
-This opens an interactive MySQL session where you can run SQL queries directly.
+This opens an interactive PostgreSQL session where you can run SQL queries directly.
 
 **Example queries:**
 
@@ -482,7 +483,7 @@ make down-prod
 The production environment includes:
 
 - **FastAPI Application** - Main API service (port 8006 internal)
-- **MySQL Database** - Persistent data storage (port 3306)
+- **PostgreSQL Database** - Persistent data storage (port 5432)
 - **Nginx** - Reverse proxy (port 80)
 - **Grafana** - Monitoring dashboard (port 3000)
 - **Loki** - Log aggregation (port 3100)
@@ -495,13 +496,13 @@ Once deployed, access the services at:
 - **API**: `http://localhost` (via Nginx reverse proxy)
 - **API Docs**: `http://localhost/docs`
 - **Grafana Dashboard**: `http://localhost:3000`
-- **MySQL**: `localhost:3306`
+- **PostgreSQL**: `localhost:5432`
 - **Loki API**: `http://localhost:3100`
 
 ### Production Considerations
 
 - Use strong database credentials
-- Configure proper backup strategies for MySQL
+- Configure proper backup strategies for PostgreSQL
 - Set up monitoring alerts in Grafana
 - Use environment-specific configuration files
 - Consider using Docker secrets for sensitive data
@@ -664,9 +665,9 @@ Auto-provisioned:
 
 **Database not accessible:**
 
-- Ensure MySQL container is running: `docker ps`
+- Ensure PostgreSQL container is running: `docker ps`
 - Check database credentials in `.env.prod`
-- Verify port 3306 is not in use by another service
+- Verify port 5432 is not in use by another service
 - Check Docker network connectivity
 
 **Migration errors:**
@@ -720,8 +721,8 @@ Auto-provisioned:
 # Check what's using port 80
 lsof -i :80
 
-# Or port 3306 for MySQL
-lsof -i :3306
+# Or port 5432 for PostgreSQL
+lsof -i :5432
 
 # Or port 3000 for Grafana
 lsof -i :3000

@@ -14,6 +14,7 @@ def create_default(db: Session) -> None:
             full_name=settings.ADMIN_FULL_NAME,
             email=settings.ADMIN_EMAIL,
             disabled=settings.ADMIN_DISABLED,
+            email_verified=True,
         )
         if admin:
             logger.info("Admin verified or successfully created.")

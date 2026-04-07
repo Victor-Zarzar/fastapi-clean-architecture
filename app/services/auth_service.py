@@ -25,6 +25,9 @@ class AuthService:
         if user.disabled:
             raise AuthError("User is disabled")
 
+        if not user.email_verified:
+            raise AuthError("Email not verified")
+
         access_token = create_access_token({"sub": user.email, "role": user.role})
         refresh_token = create_refresh_token({"sub": user.email, "role": user.role})
 
@@ -32,6 +35,7 @@ class AuthService:
             "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "bearer",
+            "email_verified": user.email_verified,
         }
 
     async def refresh_access_token(

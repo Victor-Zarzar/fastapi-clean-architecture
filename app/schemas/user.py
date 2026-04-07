@@ -7,6 +7,7 @@ class UserBase(BaseModel):
     full_name: str | None = Field(default=None, max_length=255)
     role: str = "basic"
     disabled: bool = False
+    email_verified: bool = False
 
 
 class UserCreate(BaseModel):
