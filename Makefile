@@ -48,9 +48,6 @@ shell:
 migrate:
 	docker exec -it $(DOCKER_CONTAINER_NAME) alembic upgrade head
 
-migrate:
-	docker exec -it $(DOCKER_CONTAINER_NAME) alembic upgrade head
-
 current:
 	docker exec -it $(DOCKER_CONTAINER_NAME) alembic current
 

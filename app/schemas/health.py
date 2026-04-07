@@ -1,10 +1,8 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 
 class HealthCheckOut(BaseModel):
     status: str
     message: str
-    details: str | None = None
+    details: str
     response_time: float
-
-    model_config = ConfigDict(from_attributes=True)

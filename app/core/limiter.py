@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from app.core.execeptions import rate_limit_exceeded_handler
+from app.core.handlers import rate_limit_exceeded_handler
 from app.core.logger import logger
 from app.services.rate_limiter_service import limiter
 

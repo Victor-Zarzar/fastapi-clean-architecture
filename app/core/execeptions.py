@@ -1,19 +1,31 @@
-from slowapi.errors import RateLimitExceeded
-from starlette.requests import Request
-from starlette.responses import JSONResponse
+from typing import Any
+
+from fastapi import HTTPException, status
 
 
-def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
-    retry_after = getattr(exc, "retry_after", None)
+class DuplicatedError(HTTPException):
+    def __init__(
+        self, detail: Any = None, headers: dict[str, Any] | None = None
+    ) -> None:
+        super().__init__(status.HTTP_400_BAD_REQUEST, detail, headers)
 
-    payload = {
-        "error": "Too Many Requests",
-        "detail": str(exc),
-        "retry_after_seconds": int(retry_after) if retry_after is not None else 60,
-    }
 
-    headers = {}
-    if payload["retry_after_seconds"] is not None:
-        headers["Retry-After"] = str(payload["retry_after_seconds"])
+class AuthError(HTTPException):
+    def __init__(
+        self, detail: Any = None, headers: dict[str, Any] | None = None
+    ) -> None:
+        super().__init__(status.HTTP_401_UNAUTHORIZED, detail, headers)
 
-    return JSONResponse(status_code=429, content=payload, headers=headers)
+
+class NotFoundError(HTTPException):
+    def __init__(
+        self, detail: Any = None, headers: dict[str, Any] | None = None
+    ) -> None:
+        super().__init__(status.HTTP_404_NOT_FOUND, detail, headers)
+
+
+class ValidationError(HTTPException):
+    def __init__(
+        self, detail: Any = None, headers: dict[str, Any] | None = None
+    ) -> None:
+        super().__init__(status.HTTP_422_UNPROCESSABLE_ENTITY, detail, headers)
