@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
+from jwt import InvalidTokenError
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_active_user
@@ -9,11 +10,16 @@ from app.db.database import get_db
 from app.helpers.redis import RedisManager
 from app.models.user import User
 from app.repository.user import UserRepository
-from app.schemas.auth import Token
+from app.schemas.auth import ResendVerificationRequest, Token, VerifyEmailRequest
 from app.schemas.user import UserCreate, UserOut
 from app.services.auth_service import AuthService
-from app.services.user_service import UserAlreadyExistsError, UserService
-from app.utils.utils import decode_token
+from app.services.email_service import EmailDeliveryError, EmailService
+from app.services.user_service import (
+    InvalidEmailVerificationError,
+    UserAlreadyExistsError,
+    UserService,
+)
+from app.utils.utils import TokenType, decode_token, verify_token
 
 router = APIRouter(
     prefix="/auth",
@@ -31,9 +37,10 @@ def get_user_service(db: Session = Depends(get_db)) -> UserService:
 
 
 @router.post("/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def sign_up(
+async def sign_up(
     payload: UserCreate,
     user_service: UserService = Depends(get_user_service),
+    redis: RedisManager = Depends(get_redis),
 ) -> UserOut:
     try:
         user = user_service.create_user(
@@ -42,10 +49,28 @@ def sign_up(
             full_name=payload.full_name,
             email=payload.email,
         )
+
+        token = user_service.generate_email_verification_token(user)
+        token_payload = decode_token(token)
+
+        await redis.put_jwt_redis(token, token_payload["exp"])
+
+        EmailService().send_email_verification(
+            to_email=user.email,
+            username=user.username,
+            token=token,
+        )
+
         return UserOut.model_validate(user)
+
     except UserAlreadyExistsError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+    except EmailDeliveryError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(exc),
         ) from exc
 
@@ -136,7 +161,7 @@ async def refresh_access_token(
 ) -> Token:
     try:
         refresh_token = request.cookies.get("refresh_token")
-        result = auth_service.refresh_access_token(refresh_token)
+        result = await auth_service.refresh_access_token(refresh_token, redis)
 
         access_payload = decode_token(result["access_token"])
         refresh_payload = decode_token(result["refresh_token"])
@@ -170,3 +195,76 @@ async def refresh_access_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(exc),
         ) from exc
+
+
+@router.post("/verify-email", status_code=status.HTTP_200_OK)
+async def verify_email(
+    payload: VerifyEmailRequest,
+    user_service: UserService = Depends(get_user_service),
+    redis: RedisManager = Depends(get_redis),
+):
+    try:
+        token_exists = await redis.check_if_jwt_exists(payload.token)
+        if not token_exists:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Verification token is invalid, expired, or already used.",
+            )
+
+        decoded = await verify_token(
+            token=payload.token,
+            expected_type=TokenType.EMAIL_VERIFICATION,
+        )
+
+        user = user_service.verify_user_email(decoded)
+
+        token_payload = decode_token(payload.token)
+        await redis.blacklist_token(payload.token, token_payload["exp"])
+
+        return {
+            "message": "Email verified successfully.",
+            "email": user.email,
+            "email_verified": user.email_verified,
+        }
+
+    except InvalidTokenError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+    except InvalidEmailVerificationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+
+
+@router.post("/resend-verification-email", status_code=status.HTTP_200_OK)
+async def resend_verification_email(
+    payload: ResendVerificationRequest,
+    user_service: UserService = Depends(get_user_service),
+    redis: RedisManager = Depends(get_redis),
+):
+    user = user_service.get_by_email(payload.email)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found.",
+        )
+
+    if user.email_verified:
+        return {"message": "Email already verified."}
+
+    token = user_service.generate_email_verification_token(user)
+    token_payload = decode_token(token)
+
+    await redis.put_jwt_redis(token, token_payload["exp"])
+
+    EmailService().send_email_verification(
+        to_email=user.email,
+        username=user.username,
+        token=token,
+    )
+
+    return {"message": "Verification email sent successfully."}

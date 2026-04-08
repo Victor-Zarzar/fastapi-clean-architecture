@@ -40,7 +40,7 @@ def create_email_verification_token(
     to_encode.update(
         {
             "exp": expire,
-            "token_type": TokenType.EMAIL_VERIFICATION,
+            "token_type": TokenType.EMAIL_VERIFICATION.value,
         }
     )
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -102,10 +102,10 @@ async def verify_token(
 
     token_type = payload.get("token_type")
 
-    if token_type != expected_type:
+    if token_type != expected_type.value:
         raise InvalidJWTError("Invalid token type.")
 
-    if expected_type == TokenType.EMAIL_VERIFICATION:
+    if expected_type == TokenType.EMAIL_VERIFICATION.value:
         return payload
 
     redis_manager = redis_manager or RedisManager()

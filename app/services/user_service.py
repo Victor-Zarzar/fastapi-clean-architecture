@@ -2,7 +2,17 @@ from sqlalchemy.orm import Session
 
 from app.models.user import User
 from app.repository.user import UserRepository
-from app.utils.utils import hash_password, verify_password
+from app.utils.utils import (
+    create_email_verification_token,
+    hash_password,
+    verify_password,
+)
+
+
+class InvalidEmailVerificationError(Exception):
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(message)
 
 
 class UserAlreadyExistsError(Exception):
@@ -26,6 +36,10 @@ class UserService:
 
     def get_all(self) -> list[User]:
         return self.repository.get_all()
+
+    def validate_email(self, email: str) -> bool:
+        user = self.repository.get_by_email(email)
+        return user is not None
 
     def create_user(
         self,
@@ -89,3 +103,26 @@ class UserService:
             disabled=disabled,
             email_verified=email_verified,
         )
+
+    def generate_email_verification_token(self, user: User) -> str:
+        return create_email_verification_token(
+            {
+                "sub": user.email,
+                "user_id": user.id,
+            }
+        )
+
+    def verify_user_email(self, token_payload: dict) -> User:
+        email = token_payload.get("sub")
+
+        if not email:
+            raise InvalidEmailVerificationError("Invalid token payload.")
+
+        user = self.repository.get_by_email(email)
+        if not user:
+            raise InvalidEmailVerificationError("User not found.")
+
+        if user.email_verified:
+            return user
+
+        return self.repository.mark_email_as_verified(user)

@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
@@ -32,6 +34,14 @@ class UserRepository:
         stmt = select(User)
         result = self.db.execute(stmt)
         return result.scalars().all()
+
+    def mark_email_as_verified(self, user: User) -> User:
+        user.email_verified = True
+        user.email_verified_at = datetime.now(UTC)
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
 
     def create(
         self,

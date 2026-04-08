@@ -1,5 +1,5 @@
 <h1 align="center" id="header">
-  API Cost Map - Python FastAPI Application (Clean Architecture)
+  Python FastAPI Application (Clean Architecture)
 </h1>
 
 <p align="center">
@@ -207,8 +207,9 @@ make migrate          # Apply pending database migrations
 
 Access database with credentials from your `.env.dev`:
 
+- **Url**: postgresql+psycopg://example...
 - **Host**: localhost
-- **Port**: 3306
+- **Port**: 5432
 - **Database**: costdb
 - **User**: admin
 - **Password**: pass
