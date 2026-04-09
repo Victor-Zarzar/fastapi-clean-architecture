@@ -15,6 +15,7 @@ class TokenType(str, Enum):
     ACCESS = "access"
     REFRESH = "refresh"
     EMAIL_VERIFICATION = "email_verification"
+    PASSWORD_RESET = "password_reset"
 
 
 password_hash = PasswordHash.recommended()
@@ -56,7 +57,7 @@ def create_access_token(
     to_encode.update(
         {
             "exp": expire,
-            "token_type": TokenType.ACCESS,
+            "token_type": TokenType.ACCESS.value,
         }
     )
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -72,7 +73,7 @@ def create_refresh_token(
     to_encode.update(
         {
             "exp": expire,
-            "token_type": TokenType.REFRESH,
+            "token_type": TokenType.REFRESH.value,
         }
     )
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -105,9 +106,6 @@ async def verify_token(
     if token_type != expected_type.value:
         raise InvalidJWTError("Invalid token type.")
 
-    if expected_type == TokenType.EMAIL_VERIFICATION.value:
-        return payload
-
     redis_manager = redis_manager or RedisManager()
 
     exists = await redis_manager.check_if_jwt_exists(token)
@@ -123,3 +121,18 @@ async def verify_token(
 
 def is_email_valid(email: str) -> bool:
     return bool(re.fullmatch(EMAIL_REGEX, email))
+
+
+def create_password_reset_token(
+    data: dict[str, Any],
+    expires_minutes: int = 30,
+) -> str:
+    to_encode = data.copy()
+    expire = datetime.now(UTC) + timedelta(minutes=expires_minutes)
+    to_encode.update(
+        {
+            "exp": expire,
+            "token_type": TokenType.PASSWORD_RESET.value,
+        }
+    )
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)

@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  Base FastAPI project for applying general RestAPI Application cases.
+  Base FastAPI project for applying general RestAPI Application cases, built with clean architecture, best practices, and clean code. For real production use, additional security layers, Docker Compose configuration, Nginx, and further hardening are recommended.
 </p>
 
 ---
@@ -443,13 +443,44 @@ docker compose -f docker-compose.dev.yaml exec web pylint app
 
 ### Core Endpoints
 
-The API provides RESTful endpoints for cost management:
+#### Auth
+
+- **POST** `/api/v1/auth/signup` - Create new user
+- **POST** `/api/v1/auth/signin` - Sign in
+- **POST** `/api/v1/auth/signout` - Sign out
+- **POST** `/api/v1/auth/refresh` - Refresh access token
+- **POST** `/api/v1/auth/verify-email` - Verify email
+- **POST** `/api/v1/auth/resend-verification-email` - Resend verification email
+- **POST** `/api/v1/auth/forgot-password` - Forgot password
+- **POST** `/api/v1/auth/reset-password` - Reset password
+- **POST** `/api/v1/auth/change-password` - Change password
+
+#### Costs
 
 - **GET** `/api/v1/costs` - List all costs
 - **POST** `/api/v1/costs` - Create new cost
-- **GET** `/api/v1/costs/{id}` - Get cost by ID
-- **PUT** `/api/v1/costs/{id}` - Update cost
-- **DELETE** `/api/v1/costs/{id}` - Delete cost
+- **GET** `/api/v1/costs/{cost_id}` - Get cost by ID
+- **DELETE** `/api/v1/costs/{cost_id}` - Delete cost (Admin only)
+
+#### Users
+
+- **GET** `/api/v1/users/me` - Get current user
+- **GET** `/api/v1/users` - List all users
+- **GET** `/api/v1/users/{user_id}` - Get user by ID
+
+#### Admin
+
+- **GET** `/api/v1/admin` - Get admin info (Admin only)
+
+#### Health
+
+- **GET** `/api/v1/health` - Health check (Admin only)
+
+#### Kafka
+
+- **POST** `/api/v1/kafka/publish` - Publish Kafka message
+
+---
 
 ### Authentication
 
