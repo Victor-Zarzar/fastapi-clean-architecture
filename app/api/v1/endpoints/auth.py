@@ -10,7 +10,14 @@ from app.db.database import get_db
 from app.helpers.redis import RedisManager
 from app.models.user import User
 from app.repository.user import UserRepository
-from app.schemas.auth import ResendVerificationRequest, Token, VerifyEmailRequest
+from app.schemas.auth import (
+    ChangePasswordRequest,
+    ForgotPasswordRequest,
+    ResendVerificationRequest,
+    ResetPasswordRequest,
+    Token,
+    VerifyEmailRequest,
+)
 from app.schemas.user import UserCreate, UserOut
 from app.services.auth_service import AuthService
 from app.services.email_service import EmailDeliveryError, EmailService
@@ -268,3 +275,75 @@ async def resend_verification_email(
     )
 
     return {"message": "Verification email sent successfully."}
+
+
+@router.post("/forgot-password", status_code=status.HTTP_200_OK)
+async def forgot_password(
+    payload: ForgotPasswordRequest,
+    auth_service: AuthService = Depends(get_auth_service),
+    redis: RedisManager = Depends(get_redis),
+):
+    user = auth_service.user_repository.get_by_email(payload.email)
+
+    if not user:
+        return {"message": "If the email exists, a password reset link has been sent."}
+
+    if user.disabled:
+        return {"message": "If the email exists, a password reset link has been sent."}
+
+    token = auth_service.generate_password_reset_token(user)
+    token_payload = decode_token(token)
+
+    await redis.put_jwt_redis(token, token_payload["exp"])
+
+    EmailService().send_password_reset_email(
+        to_email=user.email,
+        username=user.username,
+        token=token,
+    )
+
+    return {"message": "If the email exists, a password reset link has been sent."}
+
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+async def reset_password(
+    payload: ResetPasswordRequest,
+    auth_service: AuthService = Depends(get_auth_service),
+    redis: RedisManager = Depends(get_redis),
+):
+    try:
+        await auth_service.reset_password(
+            token=payload.token,
+            new_password=payload.new_password,
+            redis_manager=redis,
+        )
+
+        return {"message": "Password reset successfully."}
+
+    except AuthError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+
+
+@router.post("/change-password", status_code=status.HTTP_200_OK)
+async def change_password(
+    payload: ChangePasswordRequest,
+    current_user: User = Depends(get_current_active_user),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    try:
+        auth_service.change_password(
+            user=current_user,
+            current_password=payload.current_password,
+            new_password=payload.new_password,
+        )
+
+        return {"message": "Password updated successfully."}
+
+    except AuthError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc

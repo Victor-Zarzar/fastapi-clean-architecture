@@ -2,11 +2,15 @@ from jwt import InvalidTokenError
 
 from app.core.execeptions import AuthError
 from app.helpers.redis import RedisManager
+from app.models.user import User
 from app.repository.user import UserRepository
 from app.utils.utils import (
     TokenType,
     create_access_token,
+    create_password_reset_token,
     create_refresh_token,
+    decode_token,
+    hash_password,
     verify_password,
     verify_token,
 )
@@ -67,3 +71,55 @@ class AuthService:
             "refresh_token": refresh_token,
             "token_type": "bearer",
         }
+
+    def generate_password_reset_token(self, user: User) -> str:
+        return create_password_reset_token(
+            {
+                "sub": user.email,
+                "user_id": user.id,
+            }
+        )
+
+    async def reset_password(
+        self,
+        token: str,
+        new_password: str,
+        redis_manager: RedisManager,
+    ) -> None:
+        try:
+            payload = await verify_token(
+                token=token,
+                expected_type=TokenType.PASSWORD_RESET,
+                redis_manager=redis_manager,
+            )
+        except InvalidTokenError as exc:
+            raise AuthError("Invalid or expired reset token.") from exc
+
+        email = payload.get("sub")
+        user_id = payload.get("user_id")
+
+        if not email or not user_id:
+            raise AuthError("Invalid token payload.")
+
+        user = self.user_repository.get_by_email(email)
+
+        if not user or user.id != user_id:
+            raise AuthError("User not found.")
+
+        hashed_password = hash_password(new_password)
+        self.user_repository.update_password(user, hashed_password)
+
+        token_payload = decode_token(token)
+        await redis_manager.blacklist_token(token, token_payload["exp"])
+
+    def change_password(
+        self,
+        user: User,
+        current_password: str,
+        new_password: str,
+    ) -> None:
+        if not verify_password(current_password, user.hashed_password):
+            raise AuthError("Current password is incorrect.")
+
+        hashed_password = hash_password(new_password)
+        self.user_repository.update_password(user, hashed_password)
