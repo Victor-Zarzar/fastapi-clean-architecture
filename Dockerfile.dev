@@ -4,17 +4,13 @@ ENV PYTHONPATH=/app
 
 WORKDIR /app
 
-COPY requirements.txt .
-
-COPY alembic.ini .
-
-COPY ./entrypoint.sh .
+COPY . .
 
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-COPY tests .
-
 EXPOSE 8000
+
+RUN chmod +x entrypoint.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]
 

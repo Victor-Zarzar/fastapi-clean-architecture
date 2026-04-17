@@ -1,5 +1,6 @@
 services:
   web:
+    image: api-cost-map-web:0.1.0
     build:
       context: .
       dockerfile: Dockerfile.prod
@@ -41,7 +42,7 @@ services:
       - app-network
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.6.1
+    image: confluentinc/cp-zookeeper:7.7.8
     container_name: zookeeper-cost-map
     restart: always
     environment:
@@ -51,7 +52,7 @@ services:
       - app-network
 
   kafka:
-    image: confluentinc/cp-kafka:7.6.1
+    image: confluentinc/cp-kafka:7.7.8
     container_name: kafka-cost-map
     restart: always
     depends_on:

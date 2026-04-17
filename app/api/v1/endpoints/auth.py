@@ -13,6 +13,7 @@ from app.repository.user import UserRepository
 from app.schemas.auth import (
     ChangePasswordRequest,
     ForgotPasswordRequest,
+    MFAVerifyRequest,
     ResendVerificationRequest,
     ResetPasswordRequest,
     Token,
@@ -95,6 +96,9 @@ async def login_for_access_token(
             password=form_data.password,
         )
 
+        if result.get("token_type") == "mfa_pending":
+            return Token(**result)
+
         access_payload = decode_token(result["access_token"])
         refresh_payload = decode_token(result["refresh_token"])
 
@@ -127,6 +131,19 @@ async def login_for_access_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(exc),
         ) from exc
+
+
+@router.post("/verify-2fa", response_model=Token)
+async def verify_2fa(
+    body: MFAVerifyRequest,
+    redis: RedisManager = Depends(get_redis),
+    db: Session = Depends(get_db),
+):
+    service = AuthService(UserRepository(db))
+    try:
+        return await service.verify_mfa(body.mfa_pending_token, body.totp_code, redis)
+    except AuthError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
 
 @router.post("/signout", status_code=status.HTTP_200_OK)

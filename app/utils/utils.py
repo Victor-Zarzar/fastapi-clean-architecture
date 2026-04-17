@@ -16,6 +16,7 @@ class TokenType(str, Enum):
     REFRESH = "refresh"
     EMAIL_VERIFICATION = "email_verification"
     PASSWORD_RESET = "password_reset"
+    MFA_PENDING = "mfa_pending"
 
 
 password_hash = PasswordHash.recommended()
@@ -133,6 +134,18 @@ def create_password_reset_token(
         {
             "exp": expire,
             "token_type": TokenType.PASSWORD_RESET.value,
+        }
+    )
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def create_mfa_pending_token(data: dict[str, Any], expires_minutes: int = 5) -> str:
+    to_encode = data.copy()
+    expire = datetime.now(UTC) + timedelta(minutes=expires_minutes)
+    to_encode.update(
+        {
+            "exp": expire,
+            "token_type": TokenType.MFA_PENDING.value,
         }
     )
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)

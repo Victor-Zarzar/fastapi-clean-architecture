@@ -5,6 +5,7 @@ from app.api.v1.endpoints.auth import router as auth_router
 from app.api.v1.endpoints.costs import router as costs_router
 from app.api.v1.endpoints.health import router as health_router
 from app.api.v1.endpoints.kafka import router as kafka_router
+from app.api.v1.endpoints.two_factor import router as two_factor_router
 from app.api.v1.endpoints.user import router as user_router
 
 routers = APIRouter()
@@ -16,6 +17,7 @@ router_list = [
     costs_router,
     kafka_router,
     health_router,
+    two_factor_router,
 ]
 
 for router in router_list:

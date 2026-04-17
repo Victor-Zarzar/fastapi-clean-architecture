@@ -5,6 +5,7 @@ class Token(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+    mfa_pending_token: str | None = None
 
 
 class TokenData(BaseModel):
@@ -32,3 +33,13 @@ class ResetPasswordRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str
+
+
+class MFAVerifyRequest(BaseModel):
+    mfa_pending_token: str
+    totp_code: str
+
+
+class MFAPendingResponse(BaseModel):
+    mfa_pending_token: str
+    token_type: str = "mfa_pending"

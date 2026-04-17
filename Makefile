@@ -1,103 +1,102 @@
 # Makefile API Cost Map
+PROJECT_NAME = API Cost Map
 DOCKER_IMAGE_NAME = api-cost-map-web
 DOCKER_CONTAINER_NAME = api-cost-map
 PORT = 8000
-DOCKER_TAG=1.0.0
-IMAGE_API = $(DOCKER_IMAGE_NAME)-api:$(DOCKER_TAG)
-COMPOSE = docker compose
-DEV_COMPOSE = docker-compose.dev.yaml
-PROD_COMPOSE = docker-compose.prod.yaml
+DOCKER_TAG ?= dev
+DEV = docker compose -f docker-compose.dev.yaml
+PROD = docker compose -f docker-compose.prod.yaml
+DE = docker exec -it
 DB_CONTAINER_NAME = postgres-server
 DB_PORT = 5432
 DB_NAME = costdb
 DB_USER = admin
 DB_PASS = pass
 
-
-build-dev:
-	chmod +x entrypoint.sh
-	IMAGE_API=$(IMAGE_API) $(COMPOSE) -f $(DEV_COMPOSE) build
-
-run-dev: build-dev
-	IMAGE_API=$(IMAGE_API) $(COMPOSE) -f $(DEV_COMPOSE) up
+run-dev:
+	$(DEV) up --build
 
 down-dev:
-	$(COMPOSE) -f $(DEV_COMPOSE) down
+	$(DEV) down
 
 logs-dev:
-	$(COMPOSE) -f $(DEV_COMPOSE) logs -f
+	$(DEV) logs -f
 
 test:
-	$(COMPOSE) -f $(DEV_COMPOSE) exec web pytest
+	$(DEV) exec web pytest
 
-build-prod:
-	$(COMPOSE) -f $(PROD_COMPOSE) build
+run-prod:
+	$(PROD) up --build -d
 
-run-prod: build-prod
-	$(COMPOSE) -f $(PROD_COMPOSE) up
+down-prod:
+	$(PROD) down
+
+logs-prod:
+	$(PROD) logs -f
 
 restart-web:
-	$(COMPOSE) -f $(PROD_COMPOSE) restart web
+	$(PROD) restart web
 
 restart-nginx:
-	$(COMPOSE) -f $(PROD_COMPOSE) restart nginx
+	$(PROD) restart nginx
 
 shell:
-	docker exec -it $(DOCKER_CONTAINER_NAME) /bin/bash
+	$(DE) $(DOCKER_CONTAINER_NAME) /bin/bash
 
 migration:
-	docker exec -it $(DOCKER_CONTAINER_NAME) python -m alembic revision --autogenerate -m "$(m)"
+	$(DE) $(DOCKER_CONTAINER_NAME) python -m alembic revision --autogenerate -m "$(m)"
 
 migrate:
-	docker exec -it $(DOCKER_CONTAINER_NAME) alembic upgrade head
+	$(DE) $(DOCKER_CONTAINER_NAME) alembic upgrade head
 
 current:
-	docker exec -it $(DOCKER_CONTAINER_NAME) alembic current
+	$(DE) $(DOCKER_CONTAINER_NAME) alembic current
 
 history:
-	docker exec -it $(DOCKER_CONTAINER_NAME) alembic history
+	$(DE) $(DOCKER_CONTAINER_NAME) alembic history
 
 access-db-local:
-	docker exec -it $(DB_CONTAINER_NAME) psql -U $(DB_USER) -d $(DB_NAME)
+	$(DE) $(DB_CONTAINER_NAME) psql -U $(DB_USER) -d $(DB_NAME)
 
 clean:
-	docker compose -f $(DEV_COMPOSE) down -v --remove-orphans --rmi local 2>/dev/null || true
-	docker compose -f $(PROD_COMPOSE) down -v --remove-orphans --rmi local 2>/dev/null || true
+	$(DEV) down -v --remove-orphans --rmi local 2>/dev/null || true
+	$(PROD) down -v --remove-orphans --rmi local 2>/dev/null || true
 	find . \( -name "__pycache__" -o -name "*.pyc" \) -exec rm -rf {} + 2>/dev/null || true
-	rm -rf .pytest_cache .coverage htmlcov 2>/dev/null || true
+	rm -rf .pytest_cache .coverage htmlcov .ruff_cache 2>/dev/null || true
 
 clean-all: clean
-	docker rmi -f $$(docker compose -f $(DEV_COMPOSE) config --images) 2>/dev/null || true
-	docker rmi -f $$(docker compose -f $(PROD_COMPOSE) config --images) 2>/dev/null || true
+	docker rmi -f $$( $(DEV) config --images ) 2>/dev/null || true
+	docker rmi -f $$( $(PROD) config --images ) 2>/dev/null || true
 
 format:
-	$(COMPOSE) -f $(DEV_COMPOSE) exec web ruff format app
+	$(DEV) exec web ruff format app
 
 lint:
-	$(COMPOSE) -f $(DEV_COMPOSE) exec web pylint app
-
+	$(DEV) exec web pylint app
 
 help:
 	@echo ""
-	@echo "API Cost MAP ($(DOCKER_TAG)) - Makefile Commands"
+	@echo "$(PROJECT_NAME) ($(DOCKER_TAG)) - Makefile Commands"
 	@echo "──────────────────────────────────────────────"
-	@echo "Development Commands:"
-	@echo "  make build-dev  ➜ Build image Docker (development)"
-	@echo "  make run-dev    ➜ Run local server (development)"
-	@echo "  make stop       ➜ Stop local server"
-	@echo "  make test       ➜ Run tests with pytest"
-	@echo "  make clean      ➜ Clean local environment and containers"
-	@echo "  make format     ➜ Format code with ruff"
-	@echo "  make lint       ➜ Lint code with pylint"
 	@echo ""
-	@echo "Production Commands:"
-	@echo "  make build-prod ➜ Build image Docker (prod)"
-	@echo "  make run-prod   ➜ Start production environment with Docker Compose"
-	@echo "  make down-prod  ➜ Stop production environment"
-	@echo "  make logs-prod  ➜ Show production logs"
-	@echo "  make restart-web ➜ Restart web service"
-	@echo "  make restart-nginx ➜ Restart nginx service"
+	@echo "Development:"
+	@echo "  make run-dev         Start dev environment"
+	@echo "  make down-dev        Stop dev environment"
+	@echo "  make logs-dev        Show dev logs"
+	@echo "  make test            Run tests"
 	@echo ""
-	@echo "Cleanup Commands:"
-	@echo "  make clean-all  ➜ Clean all local environment and containers"
+	@echo "Production:"
+	@echo "  make run-prod        Start prod environment"
+	@echo "  make down-prod       Stop prod environment"
+	@echo "  make logs-prod       Show prod logs"
+	@echo "  make restart-web     Restart web service"
+	@echo "  make restart-nginx   Restart nginx"
 	@echo ""
+	@echo "Utilities:"
+	@echo "  make shell           Access container shell"
+	@echo "  make migration       Create migration"
+	@echo "  make migrate         Apply migrations"
+	@echo ""
+	@echo "Cleanup:"
+	@echo "  make clean           Clean containers and cache"
+	@echo "  make clean-all       Full cleanup"

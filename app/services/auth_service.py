@@ -1,4 +1,5 @@
 from jwt import InvalidTokenError
+from pyotp import TOTP
 
 from app.core.execeptions import AuthError
 from app.helpers.redis import RedisManager
@@ -7,6 +8,7 @@ from app.repository.user import UserRepository
 from app.utils.utils import (
     TokenType,
     create_access_token,
+    create_mfa_pending_token,
     create_password_reset_token,
     create_refresh_token,
     decode_token,
@@ -32,6 +34,13 @@ class AuthService:
         if not user.email_verified:
             raise AuthError("Email not verified")
 
+        if user.totp_enabled:
+            mfa_pending_token = create_mfa_pending_token({"sub": user.email})
+            return {
+                "mfa_pending_token": mfa_pending_token,
+                "token_type": "mfa_pending",
+            }
+
         access_token = create_access_token({"sub": user.email, "role": user.role})
         refresh_token = create_refresh_token({"sub": user.email, "role": user.role})
 
@@ -40,6 +49,40 @@ class AuthService:
             "refresh_token": refresh_token,
             "token_type": "bearer",
             "email_verified": user.email_verified,
+        }
+
+    async def verify_mfa(
+        self,
+        mfa_pending_token: str,
+        totp_code: str,
+        redis_manager: RedisManager,
+    ) -> dict:
+        try:
+            payload = await verify_token(
+                mfa_pending_token,
+                TokenType.MFA_PENDING,
+                redis_manager,
+            )
+        except InvalidTokenError as exc:
+            raise AuthError("Invalid or expired MFA token.") from exc
+
+        email = payload.get("sub")
+        if not email:
+            raise AuthError("Invalid token payload.")
+
+        user = self.user_repository.get_by_email(email)
+        if not user:
+            raise AuthError("User not found.")
+
+        if not TOTP(user.totp_secret).verify(totp_code):
+            raise AuthError("Invalid TOTP code.")
+
+        access_token = create_access_token({"sub": user.email, "role": user.role})
+        refresh_token = create_refresh_token({"sub": user.email, "role": user.role})
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
         }
 
     async def refresh_access_token(

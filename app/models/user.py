@@ -34,6 +34,10 @@ class User(Base):
         nullable=False,
         default=datetime.utcnow,
     )
+    totp_secret: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, default=None
+    )
+    totp_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
     __table_args__ = (
         CheckConstraint("role in ('admin','basic')", name="ck_users_role"),

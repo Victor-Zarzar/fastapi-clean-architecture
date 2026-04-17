@@ -74,3 +74,19 @@ class UserRepository:
         self.db.commit()
         self.db.refresh(user)
         return user
+
+    def set_totp_secret(self, user: User, secret: str) -> User:
+        user.totp_secret = secret
+        user.totp_enabled = True
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+
+    def disable_totp(self, user: User) -> User:
+        user.totp_secret = None
+        user.totp_enabled = False
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
