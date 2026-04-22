@@ -4,8 +4,8 @@ DOCKER_IMAGE_NAME = api-cost-map-web
 DOCKER_CONTAINER_NAME = api-cost-map
 PORT = 8000
 DOCKER_TAG ?= dev
-DEV = docker compose -f docker-compose.dev.yaml
-PROD = docker compose -f docker-compose.prod.yaml
+DEV = docker compose --env-file .env.dev -f docker-compose.dev.yaml
+PROD = docker compose --env-file .env.prod -f docker-compose.prod.yaml
 DE = docker exec -it
 DB_CONTAINER_NAME = postgres-server
 DB_PORT = 5432
@@ -26,7 +26,7 @@ test:
 	$(DEV) exec web pytest
 
 run-prod:
-	$(PROD) up --build -d
+	$(PROD) up -d --build
 
 down-prod:
 	$(PROD) down

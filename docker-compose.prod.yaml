@@ -29,7 +29,7 @@ services:
       - app-network
 
   postgres:
-    image: postgres:17-alpine
+    image: postgres:17.7-alpine
     container_name: postgres-server
     restart: always
     env_file:
@@ -81,7 +81,8 @@ services:
     networks:
       - app-network
     restart: always
-    env_file: .env.prod
+    env_file:
+      - .env.prod
     command: >
       /bin/sh -c "envsubst '$${BACKEND_HOST} $${BACKEND_PORT}'  < /etc/nginx/nginx.conf.template  > /etc/nginx/nginx.conf  && exec nginx -g 'daemon off;'"
 

@@ -62,7 +62,7 @@ services:
       - app-network
 
   postgres:
-    image: postgres:17-alpine
+    image: postgres:17.7-alpine
     container_name: postgres-server
     restart: always
     env_file:
