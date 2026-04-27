@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/Victor-Zarzar/fastapi-clean-architecture/compare/v0.1.0...v0.2.0) (2026-04-27)
+
+
+### Features
+
+* Update dockerfile prod and add new feat two factor auth ([243f021](https://github.com/Victor-Zarzar/fastapi-clean-architecture/commit/243f0217ded2986519d1b3d6618010d0cf085751))
+
 ## 0.1.0 (2026-04-11)
 
 
