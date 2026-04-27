@@ -1,0 +1,93 @@
+name: Main CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    environment: testing
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: app_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d app_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      APP_NAME: FastAPI Clean Architecture
+      DEBUG: "false"
+      ENVIRONMENT: testing
+      SECRET_KEY: ci-secret-key
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+      REFRESH_TOKEN_EXPIRE_DAYS: "7"
+      ALLOWED_ORIGINS: '["*"]'
+      ENABLE_RATE_LIMITER: "true"
+      RATE_LIMIT_REQUESTS: "5"
+      RATE_LIMIT_WINDOW: "60"
+      SMTP_HOST: smtp.example.com
+      SMTP_PORT: "465"
+      SMTP_USERNAME: ci@example.com
+      SMTP_PASSWORD: ci-password
+      SMTP_FROM_EMAIL: ci@example.com
+      FRONTEND_URL: http://localhost:3000
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin-password
+      ADMIN_FULL_NAME: Admin CI
+      ADMIN_EMAIL: admin@example.com
+      POSTGRES_DB: app_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/app_test
+      DATABASE_HOST: localhost
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: app_test
+      DATABASE_USER: postgres
+      DATABASE_PASS: postgres
+      REDIS_LOCATION: localhost
+      REDIS_PORT: "6379"
+      KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+      KAFKA_TOPIC: test-topic
+      KAFKA_CONSUMER_GROUP: test-group
+
+      LOG_LEVEL: INFO
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup project
+        uses: ./.github/actions/setup-project
+
+      - name: Run migrations
+        run: alembic upgrade head
+
+      - name: Run tests
+        run: pytest
