@@ -1,6 +1,7 @@
 services:
   web:
-    image: api-cost-map-web:0.1.0
+    container_name: api-cost-map-app
+    image: ${DOCKER_IMAGE_NAME:-api-cost-map-app}:${DOCKER_TAG:-latest}
     build:
       context: .
       dockerfile: Dockerfile.prod

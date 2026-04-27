@@ -1,10 +1,10 @@
 services:
   web:
-    image: api-cost-map-web:dev
+    container_name: api-cost-map-app
+    image: ${DOCKER_IMAGE_NAME:-api-cost-map-app}:${DOCKER_TAG:-latest}
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: api-cost-map
     ports:
       - "8000:8000"
     depends_on:

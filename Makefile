@@ -1,9 +1,9 @@
 # Makefile API Cost Map
 PROJECT_NAME = API Cost Map
-DOCKER_IMAGE_NAME = api-cost-map-web
-DOCKER_CONTAINER_NAME = api-cost-map
+DOCKER_IMAGE_NAME = api-cost-map-app
+DOCKER_CONTAINER_NAME = api-cost-map-app
 PORT = 8000
-DOCKER_TAG ?= dev
+DOCKER_TAG = $(shell python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
 DEV = docker compose --env-file .env.dev -f docker-compose.dev.yaml
 PROD = docker compose --env-file .env.prod -f docker-compose.prod.yaml
 DE = docker exec -it
@@ -13,8 +13,14 @@ DB_NAME = costdb
 DB_USER = admin
 DB_PASS = pass
 
+build-dev:
+	DOCKER_IMAGE_NAME=$(DOCKER_CONTAINER_NAME) DOCKER_TAG=$(DOCKER_TAG) $(DEV) build --no-cache
+
+build-prod:
+	DOCKER_IMAGE_NAME=$(DOCKER_IMAGE_NAME) DOCKER_TAG=$(DOCKER_TAG) $(PROD) build --no-cache
+
 run-dev:
-	$(DEV) up --build
+	DOCKER_IMAGE_NAME=$(DOCKER_CONTAINER_NAME) DOCKER_TAG=$(DOCKER_TAG) $(DEV) up --build
 
 down-dev:
 	$(DEV) down
@@ -26,7 +32,7 @@ test:
 	$(DEV) exec web pytest
 
 run-prod:
-	$(PROD) up -d --build
+	DOCKER_IMAGE_NAME=$(DOCKER_IMAGE_NAME) DOCKER_TAG=$(DOCKER_TAG) $(PROD) up -d --build
 
 down-prod:
 	$(PROD) down

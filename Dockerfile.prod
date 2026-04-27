@@ -1,14 +1,22 @@
+# =========================
+# Stage 1 - builder
+# =========================
+
 FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY requirements.txt .
+COPY pyproject.toml .
 
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip setuptools wheel
 
 COPY alembic.ini .
 COPY entrypoint.sh .
@@ -16,19 +24,33 @@ COPY logger.yaml .
 COPY app ./app
 COPY alembic ./alembic
 
-FROM python:3.12-slim
+RUN pip install --no-cache-dir --no-compile .
+
+# =========================
+# Stage 2 - runtime
+# =========================
+
+FROM python:3.12-slim AS runtime
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 && rm -rf /var/lib/apt/lists/*
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH"
 
-ENV PATH="/opt/venv/bin:$PATH"
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/* \
+    && adduser --disabled-password --gecos "" appuser \
+    && mkdir -p /var/log/app \
+    && chown -R appuser:appuser /var/log/app
 
 COPY --from=builder /opt/venv /opt/venv
-COPY --from=builder /app /app
+COPY --from=builder --chown=appuser:appuser /app /app
 
 RUN chmod +x /app/entrypoint.sh
+
+USER appuser
 
 EXPOSE 8006
 

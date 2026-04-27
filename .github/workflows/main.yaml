@@ -1,0 +1,39 @@
+name: Main CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    environment: testing
+
+    env:
+      APP_NAME: FastAPI Clean Architecture
+      DEBUG: "false"
+      ENVIRONMENT: testing
+      ALLOWED_ORIGINS: '["*"]'
+      ENABLE_RATE_LIMITER: "true"
+      RATE_LIMIT_REQUESTS: "5"
+      RATE_LIMIT_WINDOW: "60"
+      EMAIL_ADDRESS: ci@example.com
+      EMAIL_PASSWORD: ci-password
+      SMTP_SERVER: smtp.example.com
+      SMTP_PORT: "465"
+      LOG_LEVEL: INFO
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup project
+        uses: ./.github/actions/setup-project
+
+      - name: Pytest
+        run: pytest

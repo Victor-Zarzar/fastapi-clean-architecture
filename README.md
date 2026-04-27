@@ -364,7 +364,7 @@ api-cost-map/
 ├── entrypoint.sh                        # Container startup & migration script
 ├── loki-config.yml                      # Loki log aggregation configuration
 ├── promtail-config.yml                  # Promtail log collection configuration
-├── requirements.txt                     # Python dependencies
+├── pyproject.toml                       # Python dependencies and config project
 ├── .env.example                         # Environment variables template
 ├── .env.dev                             # Development environment (not in git)
 ├── .env.prod                            # Production environment (not in git)
