@@ -1,7 +1,7 @@
 [project]
 name = "fastapi-clean-architecture"
 description = "Base FastAPI project for applying general RestAPI Application cases, built with clean architecture, best practices, and clean code."
-version = "0.2.0"
+version = "0.3.0"
 requires-python = ">=3.12"
 
 dependencies = [
