@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0](https://github.com/Victor-Zarzar/fastapi-clean-architecture/compare/v0.2.0...v0.3.0) (2026-04-28)
+
+
+### Features
+
+* add ci.yaml and fix release.yaml ([2bfd281](https://github.com/Victor-Zarzar/fastapi-clean-architecture/commit/2bfd2817c8396c6a2d54c79606d01f50cf2ac585))
+* add ci.yaml and fix release.yaml ([b0f8fea](https://github.com/Victor-Zarzar/fastapi-clean-architecture/commit/b0f8fea15a9787fda2af71c97de3d91469101e96))
+
+
+### Bug Fixes
+
+* pyproject.toml add lib ([3d4051c](https://github.com/Victor-Zarzar/fastapi-clean-architecture/commit/3d4051cee1a12c1882d0ac2b7c42eb55fb0bb0bb))
+
 ## [0.2.0](https://github.com/Victor-Zarzar/fastapi-clean-architecture/compare/v0.1.0...v0.2.0) (2026-04-27)
 
 
