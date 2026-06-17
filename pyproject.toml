@@ -20,7 +20,7 @@ dependencies = [
   "psycopg[binary]==3.3.4",
   "PyJWT==2.13.0",
   "pwdlib[argon2]",
-  "cryptography==48.0.0",
+  "cryptography==48.0.1",
   "redis==8.0.0",
   "rq==2.9.0",
   "aiokafka==0.14.0",
